@@ -99,6 +99,41 @@
             "bz": "1",
             "paichu": "1,2,3,4,42,51,52"
         },
+         {
+            "name": "AV-黑料",
+            "api": "https://heiliaozyapi.com/api.php/provide/vod/",
+            "detail": "https://heiliaozyapi.com",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+        {
+            "name": "AV-悠悠",
+            "api": "https://yytv.cc/api.php/provide/vod/",
+            "detail": "https://yytv.cc",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+        {
+            "name": "AV-丝袜",
+            "api": "https://siwazyw.com/api.php/provide/vod/",
+            "detail": "https://siwazyw.com",
+            "bz": "0",
+            "paichu": "1,2,3,4"
+        },
+        {
+            "name": "AV-搜搜",
+            "api": "https://souavzyw.com/api.php/provide/vod/",
+            "detail": "https://souavzyw.com",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+         {
+            "name": "AV-桃花",
+            "api": "https://thzy1.me/api.php/provide/vod/",
+            "detail": "https://thzy1.me",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
         {
             "name": "TV-豆瓣资源2",
             "api": "https://caiji.dbzy5.com/api.php/provide/vod/from/dbm3u8/at/josn",
@@ -355,6 +390,13 @@
             "name": "AV-香蕉",
             "api": "https://www.xiangjiaozyw.com/api.php/provide/vod/",
             "detail": "https://www.xiangjiaozyw.com",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+        {
+            "name": "AV-小鸡资源",
+            "api": "https://api.xiaojizy.live/provide/vod",
+            "detail": "",
             "bz": "1",
             "paichu": "1,2,3,4"
         },
