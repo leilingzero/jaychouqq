@@ -2609,48 +2609,21 @@
       "ua": "okhttp",
       "url": "https://tv.iill.top/m3u/MyTV"
     },
-    {
-      "name": "🐬黄蚂蚁先锋推流源",
-      "type": 0,
-      "ua": "okhttp",
-      "url": "./ext/黄蚂蚁先锋推流源.txt"
-    },
-    {
-      "name": "🐬港台",
-      "type": 0,
-      "ua": "okhttp",
-      "url": "./ext/xnkl.txt"
-    },
+  
     {
       "name": "🐬74源",
       "type": 0,
       "ua": "okhttp",
       "url": "https://im5k.fun/vip.m3u"
     },
-    {
-      "name": "🐬风云源",
-      "type": 0,
-      "ua": "okhttp",
-      "url": "./ext/FYTV.txt"
-    },
+  
     {
       "name": "🐬港奥台国际",
       "type": 0,
       "ua": "okhttp",
       "url": "http://tv123.vvvv.ee/tv.m3u"
     },
-    {
-      "name": "🐬中港台直播源",
-      "type": 0,
-      "ua": "okhttp",
-      "url": "./ext/playlist.txt"
-    },
-    {
-      "name": "🐬台湾欢乐看源",
-      "type": 0,
-      "ua": "okhttp",
-      "url": "./ext/欢乐看.txt"
-    },
+   
     {
       "name": "🐬4GTV(梯子台湾节点)",
       "type": 0,
