@@ -1,12 +1,10 @@
-# coding=utf-8
-# !/usr/bin/python
-# by嗷呜
+# -*- coding: utf-8 -*-
+# by @嗷呜
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.append('..')
 from base.spider import Spider
-
 
 class Spider(Spider):
 
@@ -173,7 +171,7 @@ class Spider(Spider):
 
     def playerContent(self, flag, id, vipFlags):
         id=f'{self.rhost}{id}'
-        return  {'parse': 1, 'url': id, 'header': ''}
+        return  {'jx':1,'parse': 1, 'url': id, 'header': ''}
 
     def localProxy(self, param):
         pass
