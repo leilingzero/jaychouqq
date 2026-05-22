@@ -17,7 +17,7 @@
         },
         {
             "name": "TV-1080资源",
-            "api": "https://api.1080zyku.com/inc/api_mac10.php",
+            "api": "https://api.yyzy-tv.vip/inc/api_mac10_all.php",
             "detail": "https://api.1080zyku.com",
             "bz": "0",
             "paichu": "1,2,3,4"
