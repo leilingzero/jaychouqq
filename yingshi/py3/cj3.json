@@ -58,6 +58,13 @@
             "paichu": "1,2,3,4"
         },
         {
+            "name": "TV-西瓜资源",
+            "api": "https://caiji.xgzyapi.com/api.php/provide/vod/",
+            "detail": "https://caiji.xgzyapi.com",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+        {
             "name": "TV-红牛资源",
             "api": "https://www.hongniuzy2.com/api.php/provide/vod",
             "detail": "https://www.hongniuzy2.com",
