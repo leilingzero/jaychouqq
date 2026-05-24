@@ -43,6 +43,14 @@
             "bz": "1",
             "paichu": ""
         },
+         {
+            "name": "TV-影剧网",
+            "api": "https://yjzy.tv/api.php/provide/vod",
+            "detail": "https://yjzy.tv",           
+            "bz": "1",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
         {
             "name": "TV-索尼-闪电资源",
             "api": "https://xsd.sdzyapi.com/api.php/provide/vod",
