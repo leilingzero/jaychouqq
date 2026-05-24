@@ -591,8 +591,8 @@
         },
         {
             "name": "AV-杏吧资源",
-            "api": "https://xingba111.com/api.php/provide/vod",
-            "detail": "https://xingba111.com",
+            "api": "https://api.xgbbk8.com/api.php/provide/vod/",
+            "detail": "https://api.xgbbk8.com",
             "bz": "1",
             "paichu": "1,2,3,4"
         },
