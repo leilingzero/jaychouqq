@@ -133,9 +133,18 @@ ONLINE_LIVE_SOURCES = [
 {
         "id": "siji_live",
         "name": "✨ 四季直播",
-        "url": "https://ha.msbot.dpdns.org/4gtv_api.php",
+        "url": "https://raw.githubusercontent.com/wliqi495-create/jaychouqq/refs/heads/main/4gtv_api.php.txt",
         "cover": TV_COVER,
         "remarks": "四季直播源",
+        "type": "txt",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    },
+    {
+        "id": "feiyang_live",
+        "name": "✨ 飞扬直播",
+        "url": "https://chuxinya.top/f/QnyjCo/%E9%A3%9E%E6%89%AC%E7%9B%B4%E6%92%AD.txt",
+        "cover": TV_COVER,
+        "remarks": "飞扬直播源",
         "type": "txt",
         "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     },
