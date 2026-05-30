@@ -21,30 +21,37 @@
  * 客户端长期Cookie设置教程:
  * 抓包哔哩手机端搜索access_key,取任意链接里的access_key和appkey在drpy环境变量中增加同名的环境变量即可
  * 此时哔哩.js这个解析可用于此源的解析线路用
- * 传参 ?render=1&type=url&params=../json/哔哩教育.json@哔哩教育[官]
- * 传参 ?render=1&type=url&params=../json/哔哩大全.json@哔哩大全[官]
+ * 传参 ?render=1&type=url&params=../json/哔哩收藏.json@哔哩收藏[官]
+ * 获取收藏 /x/v3/fav/resource/list?media_id=1145063440&pn=1&ps=20&keyword=
+ * 用户可以通过PC端获取公开收藏夹配置，实现个人收藏夹视频播放
 @header({
   searchable: 2,
   filterable: 1,
   quickSearch: 0,
-  title: '我的哔哩[官]',
+  title: '哔哩收藏[官]',
   lang: 'ds'
 })
 */var rule = {
-    title: '我的哔哩[官]',
+    title: '哔哩收藏[官]',
     host: 'https://api.bilibili.com',
     homeUrl: '/x/web-interface/ranking/v2?rid=0&type=origin',
-    url: '/x/web-interface/search/type?search_type=video&fyfilter',
-    filter_url: 'keyword=fyclass{{fl.tid}}&page=fypage&duration={{fl.duration}}&order={{fl.order}}',
+    url: '/x/v3/fav/resource/list?media_id=fyclass&pn=fypage&ps=20&keyword=',
+    // filter_url: 'keyword=fyclass{{fl.tid}}&page=fypage&duration={{fl.duration}}&order={{fl.order}}',
     class_parse: async function () {
-        // let html = request('{{host}}/files/json/哔哩教育.json');
+        // // let html = request('{{host}}/files/json/哔哩教育.json');
+        // let up_mid = "503852483";
+        // // 获取收藏
+        // let collectionUrl = "https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=503852483";
+        // let collectionData = JSON.parse(await request(collectionUrl)).data;
+        // // 获取订阅
+        // let subscribeUrl = "https://api.bilibili.com/x/v3/fav/folder/collected/list?pn=1&ps=20&up_mid=503852483&platform=web";
+        // let subscribeData = JSON.parse(await request(subscribeUrl)).data;
+        // console.log(11111111,collectionData,subscribeData)
         let html = await request(rule.params);
         let json = dealJson(html);
         let classes = json.classes;
-        let filters = json.filter;
         return {
             class: classes,
-            filters,
         }
     },
     filterable: 1,
@@ -103,28 +110,6 @@
         result.danmaku = dan;
         return result
     },
-    推荐: async function () {
-        let {input} = this;
-        let html = await request(input);
-        let vodList = JSON.parse(html).data.list;
-        let videos = [];
-        vodList.forEach(function (vod) {
-            let aid = vod.aid;
-            let title = misc.stripHtmlTag(vod.title);
-            let img = vod.pic;
-            if (img.startsWith('//')) {
-                img = 'https:' + img;
-            }
-            let remark = turnDHM(vod.duration) + ' ▶' + ConvertNum(vod.stat.view) + ' 🆙' + vod.owner.name;
-            videos.push({
-                vod_id: aid,
-                vod_name: title,
-                vod_pic: img,
-                vod_remarks: remark
-            })
-        });
-        return videos;
-    },
     一级: async function () {
         let {input, MY_CATE, MY_PAGE} = this;
         if (MY_CATE.endsWith('_clicklink')) {
@@ -133,38 +118,24 @@
         }
         let data = [];
         let vodList = [];
-        if (MY_CATE === '推荐') {
-            input = rule.host + '/x/web-interface/index/top/rcmd?ps=14&fresh_idx=' + MY_PAGE + '&fresh_idx_1h=' + MY_PAGE;
-            data = JSON.parse(await request(input)).data;
-            vodList = data.item;
-        } else if (MY_CATE === '历史记录') {
-            input = rule.host + '/x/v2/history?pn=' + MY_PAGE;
-            data = JSON.parse(await request(input)).data;
-            vodList = data;
-        } else {
-            data = JSON.parse(await request(input)).data;
-            vodList = data.result;
-        }
+
+        data = JSON.parse(await request(input)).data;
+        vodList = data.medias;
+
         let videos = [];
         vodList.forEach(function (vod) {
             let aid = vod.aid ? vod.aid : vod.id;
             let title = misc.stripHtmlTag(vod.title);
-            let img = vod.pic;
+            let img = vod.cover;
             if (img.startsWith('//')) {
                 img = 'https:' + img;
             }
             let play = '';
             let danmaku = '';
-            if (MY_CATE === '推荐') {
-                play = ConvertNum(vod.stat.view);
-                danmaku = vod.stat.danmaku;
-            } else if (MY_CATE === '历史记录') {
-                play = ConvertNum(vod.stat.view);
-                danmaku = vod.stat.danmaku;
-            } else {
-                play = ConvertNum(vod.play);
-                danmaku = vod.video_review;
-            }
+
+            play = ConvertNum(vod.play);
+            danmaku = vod.video_review;
+
             let remark = turnDHM(vod.duration) + ' ▶' + play + ' 💬' + danmaku;
             videos.push({
                 vod_id: aid,
