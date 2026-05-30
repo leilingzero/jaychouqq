@@ -132,10 +132,10 @@ ONLINE_LIVE_SOURCES = [
     },
 {
         "id": "siji_live",
-        "name": "✨ 四季直播",
-        "url": "http://gh-proxy.org/https://raw.githubusercontent.com/wliqi495-create/jaychouqq/refs/heads/main/4gtv_api.php.txt",
+        "name": "✨ 暮雨直播",
+        "url": "https://4key.cn/vy6",
         "cover": TV_COVER,
-        "remarks": "四季直播源",
+        "remarks": "暮雨直播源",
         "type": "txt",
         "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     },
@@ -190,6 +190,15 @@ ONLINE_LIVE_SOURCES = [
         "url": "https://gh-proxy.org/https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u",
         "cover": TV_COVER,
         "remarks": "suxuang",
+        "type": "m3u",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    },
+    {
+        "id": "siji111",
+        "name": "✨ 四季直播",
+        "url": "https://gh-proxy.org/https://raw.githubusercontent.com/wliqi495-create/jaychouqq/refs/heads/main/%E5%9B%9B%E5%AD%A3.m3u",
+        "cover": TV_COVER,
+        "remarks": "siji111",
         "type": "m3u",
         "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     },
