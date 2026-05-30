@@ -133,7 +133,7 @@ ONLINE_LIVE_SOURCES = [
 {
         "id": "siji_live",
         "name": "✨ 四季直播",
-        "url": "https://raw.githubusercontent.com/wliqi495-create/jaychouqq/refs/heads/main/4gtv_api.php.txt",
+        "url": "http://gh-proxy.org/https://raw.githubusercontent.com/wliqi495-create/jaychouqq/refs/heads/main/4gtv_api.php.txt",
         "cover": TV_COVER,
         "remarks": "四季直播源",
         "type": "txt",
