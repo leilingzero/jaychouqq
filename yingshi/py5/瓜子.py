@@ -1,13 +1,3 @@
-"""
-@header({
-  searchable: 1,
-  filterable: 1,
-  quickSearch: 1,
-  title: '瓜子',
-  lang: 'hipy'
-})
-"""
-
 # coding = utf-8
 #!/usr/bin/python
 import re
@@ -26,12 +16,7 @@ from base.spider import Spider
 sys.path.append('..')
 
 class Spider(Spider):
-    
-    def getName(self):
-        return self.name
-
-    def init(self, extend=''):
-        super().init()
+    def __init__(self):
         self.name = "瓜子"
         self.host = 'https://api.w32z7vtd.com'
         self.token = '1be86e8e18a9fa18b2b8d5432699dad0.ac008ed650fd087bfbecf2fda9d82e9835253ef24843e6b18fcd128b10763497bcf9d53e959f5377cde038c20ccf9d17f604c9b8bb6e61041def86729b2fc7408bd241e23c213ac57f0226ee656e2bb0a583ae0e4f3bf6c6ab6c490c9a6f0d8cdfd366aacf5d83193671a8f77cd1af1ff2e9145de92ec43ec87cf4bdc563f6e919fe32861b0e93b118ec37d8035fbb3c.59dd05c5d9a8ae726528783128218f15fe6f2c0c8145eddab112b374fcfe3d79'
@@ -47,6 +32,12 @@ class Spider(Spider):
         # 添加缓存机制
         self.cache = {}
         self.cache_timeout = 300  # 5分钟缓存
+        
+    def getName(self):
+        return self.name
+
+    def init(self, extend=''):
+        pass
 
     def homeContent(self, filter):
         result = {}
@@ -192,7 +183,7 @@ class Spider(Spider):
                 "vod_actor": vod.get('vod_actor', ''),
                 "vod_director": vod.get('vod_director', ''),
                 "vod_content": vod.get('vod_use_content', '').strip(),
-                "vod_play_from": "嗷呜要吃瓜"
+                "vod_play_from": "瓜子专线"
             }
             
             # 构建播放列表
@@ -298,7 +289,7 @@ class Spider(Spider):
                         "parse": 0,
                         "playUrl": "",
                         "url": data['url'],
-                        "header": json.dumps(self.header)
+                        "header": json.dumps({"User-Agent": "Lavf/57.83.100"})
                     }
             
             return {"parse": 0, "playUrl": "", "url": ""}
