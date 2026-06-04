@@ -30,6 +30,13 @@
             "paichu": "1,2,3,4"
         },
         {
+            "name": "AV-极品资源",
+            "api": "https://jipinvip1.com/api.php/provide/vod/",
+            "detail": "https://jipinvip1.com",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+        {
             "name": "AV-155资源",
             "api": "https://155api.com/api.php/provide/vod",
             "detail": "https://155api.com",
