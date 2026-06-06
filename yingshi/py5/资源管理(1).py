@@ -168,7 +168,7 @@ ONLINE_LIVE_SOURCES = [
     },
         {
         "id": "日本直播",
-        "name": "💎 国外直播",
+        "name": "💎 日本直播",
         "url": "https://web.utako.moe/jp.m3u",
         "cover": TV_COVER,
         "remarks": "日本直播",
