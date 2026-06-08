@@ -353,15 +353,15 @@
             "paichu": "1,2,3,4"
         },
         {
-            "name": "TV-金鹰点播",
-            "api": "https://jinyingzy.com/api.php/provide/vod",
-            "detail": "https://jinyingzy.com",
+            "name": "AV-百万",
+            "api": "https://api.bwzyz.com/api.php/provide/vod/at/json",
+            "detail": "https://api.bwzyz.com/",
             "bz": "1",
             "paichu": "1,2,17,27"
         },
         {
             "name": "TV-金鹰资源",
-            "api": "https://jyzyapi.com/api.php/provide/vod",
+            "api": "https://jyzyapi.com/provide/vod/",
             "detail": "https://jyzyapi.com",
             "bz": "1",
             "paichu": "1,2,17,27"
@@ -480,8 +480,8 @@
         },
         {
             "name": "AV-奥斯卡资源",
-            "api": "https://aosikazy.com/api.php/provide/vod",
-            "detail": "https://aosikazy.com",
+            "api": "https://aosikazy8.com/api.php/provide/vod",
+            "detail": "https://aosikazy8.com",
             "bz": "1",
             "paichu": "1,2,3,4"
         },
@@ -557,7 +557,7 @@
         },
         {
             "name": "AV-湿园资源",
-            "api": "https://xxavs.com/api.php/provide/vod",
+            "api": "https://xxavs.com/api.php/provide/vod/at/json",
             "detail": "https://xxavs.com",
             "bz": "1",
             "paichu": "1,2,3,4"
