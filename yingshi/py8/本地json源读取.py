@@ -12,7 +12,7 @@ class Spider(Spider):
     # 📂 [路径配置]：指定扫描内置/外置存储根目录下的哪些文件夹 (支持1-3级深度搜索)
     SCAN_DIR_LIST = [
                 "bh", "tvbox",  "bhh",         #电视📺专用文件夹，把db文件放在这里# 👈 u盘也用这个文件夹                                          
-                "lz", "纯福利", "私藏视频",  "江湖",            # 👈 前面加#关闭   这里可以修改任意大佬包名 
+                "lz", "纯福利", "私藏视频",  "江湖", "粉妹"           # 👈 前面加#关闭   这里可以修改任意大佬包名 
                 "VodPlus", "peekpili/php-scripts"                       #同上
       ]
     
@@ -218,8 +218,8 @@ class Spider(Spider):
                                 f_base = os.path.basename(f_path).rsplit('.', 1)[0]
                                 # 影视仓风格显示：📄路径/文件名 (大小)☆
                                 #u_key = f"📄{folder_display}/{f_base}({self._format_size(sz_raw)}){star}"          #全路径显示，隐藏路径，用下面这一行
-                                #u_key = f"📄{os.path.basename(folder_display)}{f_base}({self._format_size(sz_raw)}){star}"     #保留一个文件夹信息
-                                u_key = f"📄{f_base}({self._format_size(sz_raw)}){star}"         #只保留文件名和大小
+                                u_key = f"📄{os.path.basename(folder_display)}/{f_base}({self._format_size(sz_raw)}){star}"     #保留一个文件夹信息
+                                #u_key = f"📄{f_base}({self._format_size(sz_raw)}){star}"         #只保留文件名和大小
                                 
                                 tid = base64.b64encode(f"SINGLE|{f_path}|{u_key}".encode()).decode()
                                 final_index[tid] = [f_path]
