@@ -248,7 +248,7 @@
             "paichu": "1,2,3,4"
         },
         {
-            "name": "TV-聚合",
+            "name": "TV-聚合采集",
             "api": "http://150.109.94.44:1112/api.php/provide/vod/",
             "detail": "http://150.109.94.44:1112",
             "bz": "1",
@@ -395,8 +395,8 @@
             "paichu": "1,2,3,4"
         },
         {
-            "name": "TV-魔爪资源",
-            "api": "https://lovedan.net/api.php/provide/vod/"",
+            "name": "TV-艾丹资源",
+            "api": "https://lovedan.net/api.php/provide/vod/",
             "detail": "https://lovedan.net",
             "bz": "1",
             "paichu": "1,25,34,40"
