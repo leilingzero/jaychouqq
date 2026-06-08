@@ -241,9 +241,16 @@
             "paichu": "1,2,3,4"
         },
         {
-            "name": "TV-卧龙资源2",
-            "api": "https://wolongzyw.com/api.php/provide/vod",
-            "detail": "https://wolongzyw.com",
+            "name": "TV-tvbox",
+            "api": "https://dy.7772888.xyz/api.php/tvbox",
+            "detail": "https://dy.7772888.xyz",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
+        {
+            "name": "TV-聚合",
+            "api": "http://150.109.94.44:1112/api.php/provide/vod/",
+            "detail": "http://150.109.94.44:1112",
             "bz": "1",
             "paichu": "1,2,3,4"
         },
@@ -389,8 +396,8 @@
         },
         {
             "name": "TV-魔爪资源",
-            "api": "https://mozhuazy.com/api.php/provide/vod",
-            "detail": "https://mozhuazy.com",
+            "api": "https://lovedan.net/api.php/provide/vod/"",
+            "detail": "https://lovedan.net",
             "bz": "1",
             "paichu": "1,25,34,40"
         },
@@ -598,9 +605,9 @@
             "paichu": "1,2,17,27"
         },
         {
-            "name": "TV-魔爪资源",
-            "api": "https://mozhuazy.com/api.php/provide/vod",
-            "detail": "",
+            "name": "av-bt4",
+            "api": "https://www.bt4.cc/api.php/provide/vod/",
+            "detail": "https://www.bt4.cc",
             "bz": "1",
             "paichu": "1,25,34,40"
         },
