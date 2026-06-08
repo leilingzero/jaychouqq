@@ -354,7 +354,7 @@
         },
         {
             "name": "AV-百万",
-            "api": "https://api.bwzyz.com/api.php/provide/vod/at/json",
+            "api": "https://api.bwzyz.com/api.php/provide/vod/",
             "detail": "https://api.bwzyz.com/",
             "bz": "1",
             "paichu": "1,2,17,27"
@@ -557,7 +557,7 @@
         },
         {
             "name": "AV-湿园资源",
-            "api": "https://xxavs.com/api.php/provide/vod/at/json",
+            "api": "https://xxavs.com/api.php/provide/vod/",
             "detail": "https://xxavs.com",
             "bz": "1",
             "paichu": "1,2,3,4"
