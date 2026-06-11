@@ -2,7 +2,7 @@ muban.短视2.二级.img = '.detail-pic&&img&&data-src';
 var rule = {
     title: '爱弹幕',
     模板: '短视2',
-    host: 'https://bgm.girigirilove.com',
+    host: 'https://ani.girigirilove.com/',
     homeUrl: '/map/',
     // url:'/show/fyclass--------fypage---/'
     url: '/show/fyclassfyfilter/',
