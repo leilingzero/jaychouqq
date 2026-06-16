@@ -424,8 +424,8 @@
         },
         {
             "name": "AV-香蕉",
-            "api": "https://www.xiangjiaozyw.com/api.php/provide/vod/",
-            "detail": "https://www.xiangjiaozyw.com",
+            "api": "https://seep.eu.org/https://www.xiangjiaozyw.com/api.php/provide/vod/",
+            "detail": "https://seep.eu.org/https://www.xiangjiaozyw.com",
             "bz": "1",
             "paichu": "1,2,3,4"
         },
@@ -606,8 +606,8 @@
         },
         {
             "name": "av-bt4",
-            "api": "https://www.bt4.cc/api.php/provide/vod/",
-            "detail": "https://www.bt4.cc",
+            "api": "https://seep.eu.org/https://www.bt4.cc/api.php/provide/vod/",
+            "detail": "https://seep.eu.org/https://www.bt4.cc",
             "bz": "1",
             "paichu": "1,25,34,40"
         },
