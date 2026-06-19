@@ -1,106 +1,158 @@
-"""
-@header({
-  searchable: 1,
-  filterable: 1,
-  quickSearch: 1,
-  title: '河马短剧',
-  lang: 'hipy'
-})
+# coding = utf-8
+# !/usr/bin/python
+
 """
 
-import requests
-import json
-import base64
-import uuid
+作者 丢丢喵推荐 🚓 内容均从互联网收集而来 仅供交流学习使用 版权归原创者所有 如侵犯了您的权益 请通知作者 将及时删除侵权内容
+                    ====================Diudiumiao====================
+
+"""
+
+from Crypto.Util.Padding import unpad
+from Crypto.Util.Padding import pad
+from urllib.parse import unquote
+from Crypto.Cipher import ARC4
 from urllib.parse import quote
-try:
-    from Cryptodome.Cipher import AES
-    from Cryptodome.Util.Padding import pad, unpad
-except ImportError:
-    try:
-        from Crypto.Cipher import AES
-        from Crypto.Util.Padding import pad, unpad
-    except ImportError:
-        from Cryptodome.Cipher import AES
-        from Cryptodome.Util.Padding import pad, unpad
+from base.spider import Spider
+from Crypto.Cipher import AES
+from bs4 import BeautifulSoup
+from base64 import b64decode
+import urllib.request
+import urllib.parse
+import binascii
+import requests
+import base64
+import json
+import time
+import uuid
 import sys
-sys.path.append('../../')
-try:
-    from base.spider import Spider
-except ImportError:
-    class Spider:
-        def init(self, extend=""):
-            super().init()
+import re
+import os
 
-            pass
+sys.path.append('..')
+
+xurl = "https://freevideo.zqqds.cn"
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.87 Safari/537.36'
+          }
+
+pm = ''
 
 class Spider(Spider):
-    
-    apiUrl = "https://freevideo.zqqds.cn"
-    cateManual = {
-        "精选": "53@精选",
-        "古装": "54@古装",
-        "重生": "55@重生",
-        "家庭": "56@家庭",
-        "恋爱": "57@恋爱"
-    }
-    key = base64.b64decode("ZHpramdmeXhnc2h5bGd6bQ==")
-    iv = base64.b64decode("YXBpdXBkb3duZWRjcnlwdA==")
-    
+    global xurl
+    global headers
+
+    def getName(self):
+        return "首页"
+
+    def init(self, extend):
+        pass
+
     def isVideoFormat(self, url):
-        video_formats = ['.mp4', '.m3u8', '.avi', '.flv', '.mkv', '.mov', '.webm']
-        return any(fmt in url.lower() for fmt in video_formats)
+        pass
 
     def manualVideoCheck(self):
-        return True
-        
-    def getName(self):
-        return "河马短剧"
-    
-    def init(self, extend=""):
-        super().init()
+        pass
 
-        return
-    
-    def aes_encrypt(self, text):
-        try:
-            cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
-            padded_text = pad(text.encode('utf-8'), AES.block_size)
-            encrypted = cipher.encrypt(padded_text)
-            return base64.b64encode(encrypted).decode('utf-8')
-        except Exception:
-            return ""
-    
-    def aes_decrypt(self, encrypted_data):
-        try:
-            cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
-            encrypted_bytes = base64.b64decode(encrypted_data)
-            decrypted = cipher.decrypt(encrypted_bytes)
-            unpadded = unpad(decrypted, AES.block_size)
-            return unpadded.decode('utf-8')
-        except Exception:
-            return "{}"
-    
-    def encrypt_phone_info(self, text):
-        try:
-            encoded_bytes = base64.b64encode(text.encode('utf-8'))
-            return encoded_bytes.decode('utf-8')
-        except Exception:
-            return text
-    
-    def decrypt_phone_info(self, encoded_text):
-        try:
-            decoded_bytes = base64.b64decode(encoded_text)
-            return decoded_bytes.decode('utf-8')
-        except Exception:
-            return encoded_text
-    
+    def extract_middle_text(self, text, start_str, end_str, pl, start_index1: str = '', end_index2: str = ''):
+        if pl == 3:
+            plx = []
+            while True:
+                start_index = text.find(start_str)
+                if start_index == -1:
+                    break
+                end_index = text.find(end_str, start_index + len(start_str))
+                if end_index == -1:
+                    break
+                middle_text = text[start_index + len(start_str):end_index]
+                plx.append(middle_text)
+                text = text.replace(start_str + middle_text + end_str, '')
+            if len(plx) > 0:
+                purl = ''
+                for i in range(len(plx)):
+                    matches = re.findall(start_index1, plx[i])
+                    output = ""
+                    for match in matches:
+                        match3 = re.search(r'(?:^|[^0-9])(\d+)(?:[^0-9]|$)', match[1])
+                        if match3:
+                            number = match3.group(1)
+                        else:
+                            number = 0
+                        if 'http' not in match[0]:
+                            output += f"#{match[1]}${number}{xurl}{match[0]}"
+                        else:
+                            output += f"#{match[1]}${number}{match[0]}"
+                    output = output[1:]
+                    purl = purl + output + "$$$"
+                purl = purl[:-3]
+                return purl
+            else:
+                return ""
+        else:
+            start_index = text.find(start_str)
+            if start_index == -1:
+                return ""
+            end_index = text.find(end_str, start_index + len(start_str))
+            if end_index == -1:
+                return ""
+
+        if pl == 0:
+            middle_text = text[start_index + len(start_str):end_index]
+            return middle_text.replace("\\", "")
+
+        if pl == 1:
+            middle_text = text[start_index + len(start_str):end_index]
+            matches = re.findall(start_index1, middle_text)
+            if matches:
+                jg = ' '.join(matches)
+                return jg
+
+        if pl == 2:
+            middle_text = text[start_index + len(start_str):end_index]
+            matches = re.findall(start_index1, middle_text)
+            if matches:
+                new_list = [f'{item}' for item in matches]
+                jg = '$$$'.join(new_list)
+                return jg
+
+    def homeContent(self, filter):
+        result = {}
+        result = {"class": [{"type_id": "53@精选", "type_name": "精选"},
+                            {"type_id": "54@古装", "type_name": "古装"},
+                            {"type_id": "55@重生", "type_name": "重生"},
+                            {"type_id": "56@家庭", "type_name": "家庭"},
+                            {"type_id": "57@恋爱", "type_name": "恋爱"}],
+                 }
+
+        return result
+
+    def decrypt(self, encrypted_data):
+        key = "ZHpramdmeXhnc2h5bGd6bQ=="
+        iv = "YXBpdXBkb3duZWRjcnlwdA=="
+        key_bytes = base64.b64decode(key)
+        iv_bytes = base64.b64decode(iv)
+        encrypted_bytes = base64.b64decode(encrypted_data)
+        cipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
+        decrypted_padded_bytes = cipher.decrypt(encrypted_bytes)
+        decrypted_bytes = unpad(decrypted_padded_bytes, AES.block_size)
+        return decrypted_bytes.decode('utf-8')
+
+    def decrypt_wb(self, encrypted_data):
+        key_base64 = "ZHpramdmeXhnc2h5bGd6bQ=="
+        key_bytes = base64.b64decode(key_base64)
+        iv_base64 = "YXBpdXBkb3duZWRjcnlwdA=="
+        iv_bytes = base64.b64decode(iv_base64)
+        plaintext = encrypted_data
+        cipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
+        ciphertext_bytes = cipher.encrypt(pad(plaintext.encode('utf-8'), AES.block_size))
+        ciphertext_base64 = base64.b64encode(ciphertext_bytes).decode('utf-8')
+        return ciphertext_base64
+
     def encrypt_data(self):
-        random_uuid = str(uuid.uuid4())
-        brand_encrypted = self.encrypt_phone_info("vivo")
-        model_encrypted = self.encrypt_phone_info("V1938T")
-        manu_encrypted = self.encrypt_phone_info("vivo")
-        os_encrypted = self.encrypt_phone_info("android")
+        random_uuid = uuid.uuid4()
+        key = "dzkjgfyxgshylgzm"
+        iv = "apiupdownedcrypt"
         data = {
             "version": "2.1.0",
             "pname": "com.dz.hmjc",
@@ -123,212 +175,251 @@ class Spider(Spider):
             "recSwitch": True,
             "installTime": 1748433575024,
             "p": 30
-        }
-        plaintext = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
-        encrypted_b64 = self.aes_encrypt(plaintext)
-        return {
+               }
+        def default(o):
+            if isinstance(o, uuid.UUID):
+                return str(o)
+            raise TypeError(f'Object of type {o.__class__.__name__} is not JSON serializable')
+        plaintext = json.dumps(data, separators=(',', ':'), ensure_ascii=False, default=default).encode('utf-8')
+        cipher = AES.new(key.encode('utf-8'), AES.MODE_CBC, iv.encode('utf-8'))
+        padded_data = pad(plaintext, AES.block_size)
+        ciphertext = cipher.encrypt(padded_data)
+        encrypted_b64 = base64.b64encode(ciphertext).decode('utf-8')
+        headerx = {
             "alg": "HG45LKBS",
             "datas": encrypted_b64,
             "content-type": "application/json; charset=utf-8",
             "user-agent": "okhttp/4.10.0"
-        }
-    
-    def fetch_api_data(self, portal, body_text):
-        try:
-            encrypted_body = self.aes_encrypt(body_text)
-            if not encrypted_body:
-                return None
-            headers = self.encrypt_data()
-            response = requests.post(
-                f"{self.apiUrl}/free-video-portal/portal/{portal}",
-                headers=headers,
-                data=encrypted_body,
-                timeout=15
-            )
-            if response.status_code == 200:
-                result = response.json()
-                if result.get('data'):
-                    decrypted_data = self.aes_decrypt(result['data'])
-                    if decrypted_data:
-                        return json.loads(decrypted_data)
-            return None
-        except Exception:
-            return None
-    
-    def homeContent(self, filter):
-        classes = [{"type_id": "53@精选", "type_name": "精选"},
-                  {"type_id": "54@古装", "type_name": "古装"},
-                  {"type_id": "55@重生", "type_name": "重生"},
-                  {"type_id": "56@家庭", "type_name": "家庭"},
-                  {"type_id": "57@恋爱", "type_name": "恋爱"}]
-        return {'class': classes, 'list': []}
-    
+                  }
+        return headerx
+
     def homeVideoContent(self):
-        return {'list': []}
-    
-    def categoryContent(self, tid, pg, filter, ext):
-        result = {'list': [], 'page': pg, 'pagecount': 9999, 'limit': 90, 'total': 999999}
-        try:
-            fenge = tid.split("@")
-            cid = fenge[0]
-            cname = fenge[1] if len(fenge) > 1 else ""
-            body = json.dumps({
-                "recSwitch": True,
-                "storePageId": 10002,
-                "channelGroupId": "10",
-                "channelId": int(cid),
-                "channelName": cname,
-                "lastColumnStyle": 3,
-                "fromColumnId": "1",
-                "pageFlag": str(pg),
-                "theaterSubscriptSwitch": True
-            })
-            api_data = self.fetch_api_data("1125", body)
-            if api_data and 'columnData' in api_data and api_data['columnData']:
-                video_data = api_data['columnData'][0].get('videoData', [])
-                videos = []
-                for vod in video_data:
-                    videos.append({
-                        "vod_id": vod.get('bookId', ''),
-                        "vod_name": vod.get('bookName', ''),
-                        "vod_pic": vod.get('coverWap', ''),
-                        "vod_remarks": vod.get('finishStatusCn', '')
-                    })
-                result['list'] = videos
-        except Exception:
-            pass
-        return result
-    
-    def searchContent(self, key, quick, pg=1):
-        return self.searchContentPage(key, quick, pg)
-    
-    def searchContentPage(self, key, quick, pg):
-        result = {'list': [], 'page': pg, 'pagecount': 9999, 'limit': 90, 'total': 999999}
-        try:
-            body = json.dumps({
-                "keyword": key,
-                "page": int(pg),
-                "size": 15,
-                "searchSource": "搜索按钮",
-                "hotWordType": 2,
-                "tagIds": "",
-                "reservationSwitch": True
-            })
-            api_data = self.fetch_api_data("1803", body)
-            if api_data and 'searchVos' in api_data:
-                videos = []
-                for vod in api_data['searchVos']:
-                    videos.append({
-                        "vod_id": vod.get('bookId', ''),
-                        "vod_name": vod.get('bookName', ''),
-                        "vod_pic": vod.get('coverWap', ''),
-                        "vod_remarks": vod.get('finishStatusCn', '')
-                    })
-                result['list'] = videos
-        except Exception:
-            pass
+        pass
+
+    def categoryContent(self, cid, pg, filter, ext):
+        result = {}
+        videos = []
+
+        if pg:
+            page = int(pg)
+        else:
+            page = 1
+
+        fenge = cid.split("@")
+        di = f'{{"recSwitch":true,"storePageId":10002,"channelGroupId":"10","channelId":{fenge[0]},"channelName":"{fenge[1]}","lastColumnStyle":3,"fromColumnId":"1","pageFlag":"{str(page)}","theaterSubscriptSwitch":true}}'
+        detail = self.decrypt_wb(di)
+        url = f"{xurl}/free-video-portal/portal/1125"
+        response = requests.post(url=url, headers=self.encrypt_data(), data=detail)
+
+        if response.status_code == 200:
+            response_data = response.json()
+
+            data = response_data.get('data')
+
+            detail = self.decrypt(data)
+            detail = json.loads(detail)
+
+            js = detail['columnData'][0]['videoData']
+
+            for vod in js:
+                name = vod['bookName']
+
+                id = vod['bookId']
+
+                pic = vod['coverWap']
+
+                remark = vod['finishStatusCn']
+
+                video = {
+                    "vod_id": id,
+                    "vod_name": name,
+                    "vod_pic": pic,
+                    "vod_remarks":  remark
+                        }
+                videos.append(video)
+
+        result = {'list': videos}
+        result['page'] = pg
+        result['pagecount'] = 9999
+        result['limit'] = 90
+        result['total'] = 999999
         return result
 
     def detailContent(self, ids):
-        result = {'list': []}
-        if not ids:
-            return result
-        book_id = ids[0]
-        try:
-            body = json.dumps({
-                "bookId": book_id,
-                "needNextChapter": 0,
-                "isNeedAlias": "",
-                "bookAlias": "",
-                "resolutionRate": "720P"
-            })
-            api_data = self.fetch_api_data("1131", body)
-            if not api_data or 'videoInfo' not in api_data:
-                return result
-            video_info = api_data['videoInfo']
-            chapter_list = api_data.get('chapterList', [])
-            protagonist = video_info.get('protagonist', [])
-            vod_actor = ', '.join(protagonist) if protagonist else ""
-            vod_director = protagonist[0] if protagonist else ""
-            book_tags = video_info.get('bookTags', [])
-            book_tags_str = ', '.join(book_tags) if book_tags else ""
-            vod_content = video_info.get('introduction', '')
-            vod = {
-                "vod_id": book_id,
-                "vod_name": video_info.get('bookName', ''),
-                "vod_pic": video_info.get('coverWap', ''),
-                "vod_remarks": video_info.get('finishStatusCn', '') + " " + book_tags_str,
-                "vod_content": vod_content,
-                "vod_actor": vod_actor,
-                "vod_director": vod_director,
-                "vod_year": video_info.get('utime', ''),
-                "vod_area": "中国",
-                "vod_play_from": "河马短剧",
-                "vod_play_url": self.buildPlayUrl(book_id, chapter_list)
-            }
-            result['list'] = [vod]
-        except Exception:
-            pass
+        global pm
+        did = ids[0]
+        result = {}
+        videos = []
+        xianlu = ''
+        purl = ''
+
+        di = f'{{"bookId":"{did}","needNextChapter":0,"isNeedAlias":"","bookAlias":"","resolutionRate":"720P"}}'
+        detail = self.decrypt_wb(di)
+
+        url = f"{xurl}/free-video-portal/portal/1131"
+        response = requests.post(url=url, headers=self.encrypt_data(), data=detail)
+        if response.status_code == 200:
+            response_data = response.json()
+            data = response_data.get('data')
+
+            detail = self.decrypt(data)
+            detail = json.loads(detail)
+
+            url = 'https://freevideo.zqqds.cn'
+            response = requests.get(url)
+            response.encoding = 'utf-8'
+            code = response.text
+            name = self.extract_middle_text(code, "s1='", "'", 0)
+            Jumps = self.extract_middle_text(code, "s2='", "'", 0)
+
+            vod_content = '【友情提醒：请不要相信视频中的广告，以免上当受骗！】✨乐哥为您介绍剧情👉' + detail['videoInfo']['introduction']
+
+            vod_actor = detail['videoInfo']['protagonist']
+            vod_actor = ', '.join(vod_actor)
+            vod_actor = vod_actor.replace('[', '').replace(']', '').replace("'", "").replace(",", "")
+
+            vod_director = detail['videoInfo']['protagonist'][0]
+
+            bookTags = detail['videoInfo']['bookTags']
+            bookTags = ', '.join(bookTags)
+            bookTags = bookTags.replace(',', '')
+            vod_remarks = detail['videoInfo']['finishStatusCn']
+            vod_remarks = vod_remarks + " " + bookTags
+
+            year = detail['videoInfo']['utime']
+
+            area = "中国"
+
+            if name not in vod_content:
+                purl = Jumps
+                xianlu = '1'
+            else:
+                sz = len(detail['chapterList']) - 1
+                zhyj = detail['chapterList'][sz]['chapterId']
+
+                soups = detail['chapterList']
+
+                for vods in soups:
+                    name = vods['chapterName']
+
+                    parse = vods['chapterId']
+
+                    parse = did + '@' + parse + '@' + zhyj
+
+                    purl = purl + name + '$' + parse + '#'
+
+                purl = purl[:-1]
+
+                xianlu = '蓝魔专线'
+
+        videos.append({
+            "vod_id": did,
+            "vod_actor": vod_actor,
+            "vod_director": vod_director,
+            "vod_content": vod_content,
+            "vod_remarks": vod_remarks,
+            "vod_year": year,
+            "vod_area": area,
+            "vod_play_from": xianlu,
+            "vod_play_url": purl
+                      })
+
+        result['list'] = videos
         return result
-    
-    def buildPlayUrl(self, book_id, chapter_list):
-        episodes = []
-        if not chapter_list:
-            return ""
-        sorted_chapters = sorted(chapter_list, key=lambda x: x.get("chapterNum", 0))
-        last_chapter_id = sorted_chapters[-1].get("chapterId", "") if sorted_chapters else ""
-        for chapter in sorted_chapters:
-            chapter_id = chapter.get("chapterId", "")
-            chapter_name = chapter.get("chapterName", "")
-            if chapter_id:
-                episode_url = f"{book_id}@{chapter_id}@{last_chapter_id}"
-                episodes.append(f"{chapter_name}${episode_url}")
-        return "#".join(episodes)
 
     def playerContent(self, flag, id, vipFlags):
-        result = {
-            "parse": 0,
-            "url": "",
-            "header": "",
-            "playUrl": ""
-        }
-        try:
-            parts = id.split('@')
-            if len(parts) >= 2:
-                book_id = parts[0]
-                chapter_id = parts[1]
-                last_chapter_id = parts[2] if len(parts) > 2 else chapter_id
-                video_url = self.getVideoUrlFromApi(book_id, chapter_id, last_chapter_id)
-                if video_url:
-                    result["url"] = video_url
-                    result["header"] = {
-                        "User-Agent": "MOBILE_UA",
-                        "Referer": self.apiUrl
-                    }
-                    return result
-        except Exception:
-            pass
-        return result
-    
-    def getVideoUrlFromApi(self, book_id, chapter_id, last_chapter_id):
-        try:
-            body = json.dumps({
-                "bookId": book_id,
-                "chapterIds": [chapter_id],
-                "unClockType": "load",
-                "chapterId": last_chapter_id,
-                "resolutionRate": "720P"
-            })
-            api_data = self.fetch_api_data("1139", body)
-            if (api_data and 'chapterInfo' in api_data and api_data['chapterInfo'] and
-                'content' in api_data['chapterInfo'][0] and
-                'mp4SwitchUrl' in api_data['chapterInfo'][0]['content']):
-                mp4_urls = api_data['chapterInfo'][0]['content']['mp4SwitchUrl']
-                if mp4_urls:
-                    return mp4_urls[0]
-            return None
-        except Exception:
-            return None
 
-    def localProxy(self, param):
-        return [200, "video/MP2T", {}, param]
+        fenge = id.split("@")
+
+        di = '{"bookId":"","chapterIds":[""],"unClockType":"load","chapterId":"","resolutionRate":"720P"}'
+        data = json.loads(di)
+        data['bookId'] = fenge[0]
+        data['chapterIds'][0] = fenge[1]
+        data['chapterId'] = fenge[2]
+        new_di = json.dumps(data, ensure_ascii=False, indent=4)
+
+        detail2 = self.decrypt_wb(new_di)
+        url = f"{xurl}/free-video-portal/portal/1139"
+        res2 = requests.post(url=url, headers=self.encrypt_data(), data=detail2)
+
+        js = json.loads(res2.text)
+        data = js['data']
+
+        detail2 = self.decrypt(data)
+        detail = json.loads(detail2)
+        url = detail['chapterInfo'][0]['content']['mp4SwitchUrl'][0]
+
+        result = {}
+        result["parse"] = 0
+        result["playUrl"] = ''
+        result["url"] = url
+        result["header"] = headers
+        return result
+
+    def searchContentPage(self, key, quick, pg):
+        result = {}
+        videos = []
+
+        if pg:
+            page = int(pg)
+        else:
+            page = 1
+
+        di = f'{{"keyword":"{key}","page":{str(page)},"size":15,"searchSource":"搜索按钮","hotWordType":2,"tagIds":"","reservationSwitch":true}}'
+        detail = self.decrypt_wb(di)
+
+        url = f"{xurl}/free-video-portal/portal/1803"
+        response = requests.post(url=url, headers=self.encrypt_data(), data=detail)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            data = response_data.get('data')
+            detail = self.decrypt(data)
+            detail = json.loads(detail)
+
+            js = detail['searchVos']
+
+            for vod in js:
+                name = vod['bookName']
+
+                id = vod['bookId']
+
+                pic = vod['coverWap']
+
+                remark = vod['finishStatusCn']
+
+                video = {
+                    "vod_id": id,
+                    "vod_name": name,
+                    "vod_pic": pic,
+                    "vod_remarks":  + remark
+                        }
+                videos.append(video)
+
+        result = {'list': videos}
+        result['page'] = page
+        result['pagecount'] = 9999
+        result['limit'] = 90
+        result['total'] = 999999
+        return result
+
+    def searchContent(self, key, quick, pg="1"):
+        return self.searchContentPage(key, quick, '1')
+
+    def localProxy(self, params):
+        if params['type'] == "m3u8":
+            return self.proxyM3u8(params)
+        elif params['type'] == "media":
+            return self.proxyMedia(params)
+        elif params['type'] == "ts":
+            return self.proxyTs(params)
+        return None
+
+
+
+
+
+
+
+
+
