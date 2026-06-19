@@ -1,17 +1,10 @@
-/*
-@header({
-  类型: '影视',
-  lang: 'ds',
-})
-*/
-
 // 全球追更 - peekpili JS 源版（目录模式，仅列表 + goSearch）
 
-const TMDB_API_KEY = "2cb5d9fad24795e94d6fc2d654cbdd64";
+const TMDB_API_KEY = "这里填TMDB的24位tokenAPI Key (v3 auth)：这一串就是你需要的，通常是 32 位十六进制字符串，例如：a1b2c3d4e5f67890123456789abcdef，而不是API Read Access Token (v4 auth)：一大串以 eyJhbGciOi... 开头的 JWT";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36";
 const DATA_SOURCES = {
-  tmdbImage: "https://img.nastool.org/t/p",
+  tmdbImage: "https://image.tmdb.org/t/p/w500",
   tmdbApis: [
     "https://api.themoviedb.org/3",
     "https://api.tmdb.org/3"
@@ -76,19 +69,18 @@ function getToday() {
 
 // ===================== 平台与筛选配置 =====================
 const PLATFORM_CONFIG = [
-  { id: "tencent",  name: "腾讯视频",      network: "2007" },
-  { id: "youku",    name: "优酷",          network: "1419" },
-  { id: "iqiyi",    name: "爱奇艺",        network: "1330" },
-  { id: "bilibili", name: "哔哩哔哩",      network: "1605" },
-  { id: "mgtv",     name: "芒果TV",        network: "1631" }, 
   { id: "netflix",  name: "Netflix",      network: "213"  },
   { id: "hbo",      name: "HBO Max",      network: "49"   },
   { id: "disney",   name: "Disney+",      network: "2739" },
   { id: "appletv",  name: "Apple TV+",    network: "2552" },
   { id: "amazon",   name: "Amazon Prime", network: "1024" },
   { id: "hulu",     name: "Hulu",         network: "453"  },
-  { id: "paramount",name: "Paramount+",   network: "4330" }
-
+  { id: "paramount",name: "Paramount+",   network: "4330" },
+  { id: "tencent",  name: "腾讯视频",      network: "2007" },
+  { id: "youku",    name: "优酷",          network: "1419" },
+  { id: "iqiyi",    name: "爱奇艺",        network: "1330" },
+  { id: "bilibili", name: "哔哩哔哩",      network: "1605" },
+  { id: "mgtv",     name: "芒果TV",        network: "1631" }
 ];
 
 const SUB_FILTERS = {
