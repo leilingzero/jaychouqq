@@ -1,425 +1,581 @@
-# coding = utf-8
-# !/usr/bin/python
-
-"""
-
-作者 丢丢喵推荐 🚓 内容均从互联网收集而来 仅供交流学习使用 版权归原创者所有 如侵犯了您的权益 请通知作者 将及时删除侵权内容
-                    ====================Diudiumiao====================
-
-"""
-
-from Crypto.Util.Padding import unpad
-from Crypto.Util.Padding import pad
-from urllib.parse import unquote
-from Crypto.Cipher import ARC4
-from urllib.parse import quote
-from base.spider import Spider
-from Crypto.Cipher import AES
-from bs4 import BeautifulSoup
-from base64 import b64decode
-import urllib.request
-import urllib.parse
-import binascii
+# -*- coding: utf-8 -*-
 import requests
-import base64
-import json
-import time
-import uuid
-import sys
 import re
-import os
+import json
+import traceback
+import sys
 
-sys.path.append('..')
-
-xurl = "https://freevideo.zqqds.cn"
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.87 Safari/537.36'
-          }
-
-pm = ''
+sys.path.append('../../')
+try:
+    from base.spider import Spider
+except ImportError:
+    # 定义一个基础接口类，用于本地测试
+    class Spider:
+        def init(self, extend=""):
+            pass
 
 class Spider(Spider):
-    global xurl
-    global headers
-
+    def __init__(self):
+        self.siteUrl = "https://www.kuaikaw.cn"
+        self.nextData = None  # 缓存NEXT_DATA数据
+        self.cateManual = {
+            "甜宠": "462",
+            "古装仙侠": "1102",
+            "现代言情": "1145",
+            "青春": "1170",
+            "豪门恩怨": "585",
+            "逆袭": "417-464",
+            "重生": "439-465",
+            "系统": "1159",
+            "总裁": "1147",
+            "职场商战": "943"
+        }
+        
     def getName(self):
-        return "首页"
-
-    def init(self, extend):
-        pass
-
+        # 返回爬虫名称
+        return "河马短剧"
+    
+    def init(self, extend=""):
+        return
+    
+    def fetch(self, url, headers=None):
+        """统一的网络请求接口"""
+        if headers is None:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+                "Referer": self.siteUrl,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
+            }
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+            response.raise_for_status()
+            return response
+        except Exception as e:
+            print(f"请求异常: {url}, 错误: {str(e)}")
+            return None
+    
     def isVideoFormat(self, url):
-        pass
-
+        # 检查是否为视频格式
+        video_formats = ['.mp4', '.mkv', '.avi', '.wmv', '.m3u8', '.flv', '.rmvb']
+        for format in video_formats:
+            if format in url.lower():
+                return True
+        return False
+    
     def manualVideoCheck(self):
-        pass
-
-    def extract_middle_text(self, text, start_str, end_str, pl, start_index1: str = '', end_index2: str = ''):
-        if pl == 3:
-            plx = []
-            while True:
-                start_index = text.find(start_str)
-                if start_index == -1:
-                    break
-                end_index = text.find(end_str, start_index + len(start_str))
-                if end_index == -1:
-                    break
-                middle_text = text[start_index + len(start_str):end_index]
-                plx.append(middle_text)
-                text = text.replace(start_str + middle_text + end_str, '')
-            if len(plx) > 0:
-                purl = ''
-                for i in range(len(plx)):
-                    matches = re.findall(start_index1, plx[i])
-                    output = ""
-                    for match in matches:
-                        match3 = re.search(r'(?:^|[^0-9])(\d+)(?:[^0-9]|$)', match[1])
-                        if match3:
-                            number = match3.group(1)
-                        else:
-                            number = 0
-                        if 'http' not in match[0]:
-                            output += f"#{match[1]}${number}{xurl}{match[0]}"
-                        else:
-                            output += f"#{match[1]}${number}{match[0]}"
-                    output = output[1:]
-                    purl = purl + output + "$$$"
-                purl = purl[:-3]
-                return purl
-            else:
-                return ""
-        else:
-            start_index = text.find(start_str)
-            if start_index == -1:
-                return ""
-            end_index = text.find(end_str, start_index + len(start_str))
-            if end_index == -1:
-                return ""
-
-        if pl == 0:
-            middle_text = text[start_index + len(start_str):end_index]
-            return middle_text.replace("\\", "")
-
-        if pl == 1:
-            middle_text = text[start_index + len(start_str):end_index]
-            matches = re.findall(start_index1, middle_text)
-            if matches:
-                jg = ' '.join(matches)
-                return jg
-
-        if pl == 2:
-            middle_text = text[start_index + len(start_str):end_index]
-            matches = re.findall(start_index1, middle_text)
-            if matches:
-                new_list = [f'{item}' for item in matches]
-                jg = '$$$'.join(new_list)
-                return jg
-
+        # 不需要手动检查
+        return False
+    
     def homeContent(self, filter):
+        """获取首页分类及筛选"""
         result = {}
-        result = {"class": [{"type_id": "53@精选", "type_name": "精选"},
-                            {"type_id": "54@古装", "type_name": "古装"},
-                            {"type_id": "55@重生", "type_name": "重生"},
-                            {"type_id": "56@家庭", "type_name": "家庭"},
-                            {"type_id": "57@恋爱", "type_name": "恋爱"}],
-                 }
-
+        # 分类列表，使用已初始化的cateManual
+        classes = []
+        for k in self.cateManual:
+            classes.append({
+                'type_name': k,
+                'type_id': self.cateManual[k]
+            })
+        result['class'] = classes
+        # 获取首页推荐视频
+        try:
+            result['list'] = self.homeVideoContent()['list']
+        except:
+            result['list'] = []
+  
         return result
-
-    def decrypt(self, encrypted_data):
-        key = "ZHpramdmeXhnc2h5bGd6bQ=="
-        iv = "YXBpdXBkb3duZWRjcnlwdA=="
-        key_bytes = base64.b64decode(key)
-        iv_bytes = base64.b64decode(iv)
-        encrypted_bytes = base64.b64decode(encrypted_data)
-        cipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
-        decrypted_padded_bytes = cipher.decrypt(encrypted_bytes)
-        decrypted_bytes = unpad(decrypted_padded_bytes, AES.block_size)
-        return decrypted_bytes.decode('utf-8')
-
-    def decrypt_wb(self, encrypted_data):
-        key_base64 = "ZHpramdmeXhnc2h5bGd6bQ=="
-        key_bytes = base64.b64decode(key_base64)
-        iv_base64 = "YXBpdXBkb3duZWRjcnlwdA=="
-        iv_bytes = base64.b64decode(iv_base64)
-        plaintext = encrypted_data
-        cipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
-        ciphertext_bytes = cipher.encrypt(pad(plaintext.encode('utf-8'), AES.block_size))
-        ciphertext_base64 = base64.b64encode(ciphertext_bytes).decode('utf-8')
-        return ciphertext_base64
-
-    def encrypt_data(self):
-        random_uuid = uuid.uuid4()
-        key = "dzkjgfyxgshylgzm"
-        iv = "apiupdownedcrypt"
-        data = {
-            "version": "2.1.0",
-            "pname": "com.dz.hmjc",
-            "channelCode": "HMJC1000002",
-            "utdidTmp": "A20250528195953036srZcvA",
-            "token": "",
-            "utdid": "d5d959973340bb1325b551cce488a191",
-            "os": "android",
-            "osv": 28,
-            "brand": "vivo",
-            "model": "V1938T",
-            "manu": "vivo",
-            "userId": "2484393607",
-            "launch": "shortcut",
-            "mchid": "HMJC1000002",
-            "nchid": "VHSE1000000",
-            "session1": random_uuid,
-            "session2": random_uuid,
-            "startScene": "shortcut",
-            "recSwitch": True,
-            "installTime": 1748433575024,
-            "p": 30
-               }
-        def default(o):
-            if isinstance(o, uuid.UUID):
-                return str(o)
-            raise TypeError(f'Object of type {o.__class__.__name__} is not JSON serializable')
-        plaintext = json.dumps(data, separators=(',', ':'), ensure_ascii=False, default=default).encode('utf-8')
-        cipher = AES.new(key.encode('utf-8'), AES.MODE_CBC, iv.encode('utf-8'))
-        padded_data = pad(plaintext, AES.block_size)
-        ciphertext = cipher.encrypt(padded_data)
-        encrypted_b64 = base64.b64encode(ciphertext).decode('utf-8')
-        headerx = {
-            "alg": "HG45LKBS",
-            "datas": encrypted_b64,
-            "content-type": "application/json; charset=utf-8",
-            "user-agent": "okhttp/4.10.0"
-                  }
-        return headerx
-
+    
     def homeVideoContent(self):
-        pass
-
-    def categoryContent(self, cid, pg, filter, ext):
+        """获取首页推荐视频内容"""
+        videos = []
+        try:
+            response = self.fetch(self.siteUrl)
+            html_content = response.text
+            # 提取NEXT_DATA JSON数据
+            next_data_pattern = r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>'
+            next_data_match = re.search(next_data_pattern, html_content, re.DOTALL)
+            if next_data_match:
+                next_data_json = json.loads(next_data_match.group(1))
+                page_props = next_data_json.get("props", {}).get("pageProps", {})
+                # 获取轮播图数据 - 这些通常是推荐内容
+                if "bannerList" in page_props and isinstance(page_props["bannerList"], list):
+                    banner_list = page_props["bannerList"]
+                    for banner in banner_list:
+                        book_id = banner.get("bookId", "")
+                        book_name = banner.get("bookName", "")
+                        cover_url = banner.get("coverWap", banner.get("wapUrl", ""))
+                        # 获取状态和章节数
+                        status = banner.get("statusDesc", "")
+                        total_chapters = banner.get("totalChapterNum", "")
+                        if book_id and book_name:
+                            videos.append({
+                                "vod_id": f"/drama/{book_id}",
+                                "vod_name": book_name,
+                                "vod_pic": cover_url,
+                                "vod_remarks": f"{status} {total_chapters}集" if total_chapters else status
+                            })
+                
+                # SEO分类下的推荐
+                if "seoColumnVos" in page_props and isinstance(page_props["seoColumnVos"], list):
+                    for column in page_props["seoColumnVos"]:
+                        book_infos = column.get("bookInfos", [])
+                        for book in book_infos:
+                            book_id = book.get("bookId", "")
+                            book_name = book.get("bookName", "")
+                            cover_url = book.get("coverWap", "")
+                            status = book.get("statusDesc", "")
+                            total_chapters = book.get("totalChapterNum", "")
+                            
+                            if book_id and book_name:
+                                videos.append({
+                                    "vod_id": f"/drama/{book_id}",
+                                    "vod_name": book_name,
+                                    "vod_pic": cover_url,
+                                    "vod_remarks": f"{status} {total_chapters}集" if total_chapters else status
+                                })
+                 
+            # # 去重
+            # seen = set()
+            # unique_videos = []
+            # for video in videos:
+            #     if video["vod_id"] not in seen:
+            #         seen.add(video["vod_id"])
+            #         unique_videos.append(video)
+            # videos = unique_videos
+        
+        except Exception as e:
+            print(f"获取首页推荐内容出错: {e}")
+        
+        result = {
+            "list": videos
+        }
+        return result
+    
+    def categoryContent(self, tid, pg, filter, extend):
+        """获取分类内容"""
         result = {}
         videos = []
-
-        if pg:
-            page = int(pg)
-        else:
-            page = 1
-
-        fenge = cid.split("@")
-        di = f'{{"recSwitch":true,"storePageId":10002,"channelGroupId":"10","channelId":{fenge[0]},"channelName":"{fenge[1]}","lastColumnStyle":3,"fromColumnId":"1","pageFlag":"{str(page)}","theaterSubscriptSwitch":true}}'
-        detail = self.decrypt_wb(di)
-        url = f"{xurl}/free-video-portal/portal/1125"
-        response = requests.post(url=url, headers=self.encrypt_data(), data=detail)
-
-        if response.status_code == 200:
-            response_data = response.json()
-
-            data = response_data.get('data')
-
-            detail = self.decrypt(data)
-            detail = json.loads(detail)
-
-            js = detail['columnData'][0]['videoData']
-
-            for vod in js:
-                name = vod['bookName']
-
-                id = vod['bookId']
-
-                pic = vod['coverWap']
-
-                remark = vod['finishStatusCn']
-
-                video = {
-                    "vod_id": id,
-                    "vod_name": name,
-                    "vod_pic": pic,
-                    "vod_remarks":  remark
-                        }
-                videos.append(video)
-
-        result = {'list': videos}
-        result['page'] = pg
-        result['pagecount'] = 9999
-        result['limit'] = 90
-        result['total'] = 999999
+        url = f"{self.siteUrl}/browse/{tid}/{pg}"
+        response = self.fetch(url)
+        html_content = response.text
+        # 提取NEXT_DATA JSON数据
+        next_data_pattern = r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>'
+        next_data_match = re.search(next_data_pattern, html_content, re.DOTALL)
+        if next_data_match:
+            next_data_json = json.loads(next_data_match.group(1))
+            page_props = next_data_json.get("props", {}).get("pageProps", {})
+            # 获取总页数和当前页
+            current_page = page_props.get("page", 1)
+            total_pages = page_props.get("pages", 1)
+            # 获取书籍列表
+            book_list = page_props.get("bookList", [])
+            # 转换为通用格式
+            for book in book_list:
+                book_id = book.get("bookId", "")
+                book_name = book.get("bookName", "")
+                cover_url = book.get("coverWap", "")
+                status_desc = book.get("statusDesc", "")
+                total_chapters = book.get("totalChapterNum", "")
+                if book_id and book_name:
+                    videos.append({
+                        "vod_id": f"/drama/{book_id}",
+                        "vod_name": book_name,
+                        "vod_pic": cover_url,
+                        "vod_remarks": f"{status_desc} {total_chapters}集" if total_chapters else status_desc
+                    })
+            # 构建返回结果
+            result = {
+                "list": videos,
+                "page": int(current_page),
+                "pagecount": total_pages,
+                "limit": len(videos),
+                "total": total_pages * len(videos) if videos else 0
+            }
         return result
+    
+    def switch(self, key, pg):
+        # 搜索功能
+        search_results = []
+        # 获取第一页结果，并检查总页数
+        url = f"{self.siteUrl}/search?searchValue={key}&page={pg}"
+        response = self.fetch(url)
+        html_content = response.text
+        # 提取NEXT_DATA JSON数据
+        next_data_pattern = r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>'
+        next_data_match = re.search(next_data_pattern, html_content, re.DOTALL)
+        if next_data_match:
+            next_data_json = json.loads(next_data_match.group(1))
+            page_props = next_data_json.get("props", {}).get("pageProps", {})
+            # 获取总页数
+            total_pages = page_props.get("pages", 1)
+            # 处理所有页的数据
+            all_book_list = []
+            # 添加第一页的书籍列表
+            book_list = page_props.get("bookList", [])
+            all_book_list.extend(book_list)
+            # 如果有多页，获取其他页的数据
+            if total_pages > 1 :  # quick模式只获取第一页
+                for page in range(2, total_pages + 1):
+                    next_page_url = f"{self.siteUrl}/search?searchValue={key}&page={page}"
+                    next_page_response = self.fetch(next_page_url)
+                    next_page_html = next_page_response.text
+                    next_page_match = re.search(next_data_pattern, next_page_html, re.DOTALL)
+                    if next_page_match:
+                        next_page_json = json.loads(next_page_match.group(1))
+                        next_page_props = next_page_json.get("props", {}).get("pageProps", {})
+                        next_page_books = next_page_props.get("bookList", [])
+                        all_book_list.extend(next_page_books)
+            # 转换为统一的搜索结果格式
+            for book in all_book_list:
+                book_id = book.get("bookId", "")
+                book_name = book.get("bookName", "")
+                cover_url = book.get("coverWap", "")
+                total_chapters = book.get("totalChapterNum", "0")
+                status_desc = book.get("statusDesc", "")
+                # 构建视频项
+                vod = {
+                    "vod_id": f"/drama/{book_id}",
+                    "vod_name": book_name,
+                    "vod_pic": cover_url,
+                    "vod_remarks": f"{status_desc} {total_chapters}集"
+                }
+                search_results.append(vod)
+        result = {
+            "list": search_results,
+            "page": pg
+        }
+        return result
+
+    def searchContent(self, key, quick, pg=1):
+        result = self.switch(key, pg=pg)
+        result['page'] = pg
+        return result
+    
+    def searchContentPage(self, key, quick, pg=1):
+        return self.searchContent(key, quick, pg)
 
     def detailContent(self, ids):
-        global pm
-        did = ids[0]
-        result = {}
-        videos = []
-        xianlu = ''
-        purl = ''
-
-        di = f'{{"bookId":"{did}","needNextChapter":0,"isNeedAlias":"","bookAlias":"","resolutionRate":"720P"}}'
-        detail = self.decrypt_wb(di)
-
-        url = f"{xurl}/free-video-portal/portal/1131"
-        response = requests.post(url=url, headers=self.encrypt_data(), data=detail)
-        if response.status_code == 200:
-            response_data = response.json()
-            data = response_data.get('data')
-
-            detail = self.decrypt(data)
-            detail = json.loads(detail)
-
-            url = 'https://freevideo.zqqds.cn'
-            response = requests.get(url)
-            response.encoding = 'utf-8'
-            code = response.text
-            name = self.extract_middle_text(code, "s1='", "'", 0)
-            Jumps = self.extract_middle_text(code, "s2='", "'", 0)
-
-            vod_content = '【友情提醒：请不要相信视频中的广告，以免上当受骗！】✨乐哥为您介绍剧情👉' + detail['videoInfo']['introduction']
-
-            vod_actor = detail['videoInfo']['protagonist']
-            vod_actor = ', '.join(vod_actor)
-            vod_actor = vod_actor.replace('[', '').replace(']', '').replace("'", "").replace(",", "")
-
-            vod_director = detail['videoInfo']['protagonist'][0]
-
-            bookTags = detail['videoInfo']['bookTags']
-            bookTags = ', '.join(bookTags)
-            bookTags = bookTags.replace(',', '')
-            vod_remarks = detail['videoInfo']['finishStatusCn']
-            vod_remarks = vod_remarks + " " + bookTags
-
-            year = detail['videoInfo']['utime']
-
-            area = "中国"
-
-            if name not in vod_content:
-                purl = Jumps
-                xianlu = '1'
+        # 获取剧集信息
+        vod_id = ids[0]
+        episode_id = None
+        chapter_id = None
+        
+        if not vod_id.startswith('/drama/'):
+            if vod_id.startswith('/episode/'):
+                episode_info = vod_id.replace('/episode/', '').split('/')
+                if len(episode_info) >= 2:
+                    episode_id = episode_info[0]
+                    chapter_id = episode_info[1]
+                    vod_id = f'/drama/{episode_id}'
             else:
-                sz = len(detail['chapterList']) - 1
-                zhyj = detail['chapterList'][sz]['chapterId']
-
-                soups = detail['chapterList']
-
-                for vods in soups:
-                    name = vods['chapterName']
-
-                    parse = vods['chapterId']
-
-                    parse = did + '@' + parse + '@' + zhyj
-
-                    purl = purl + name + '$' + parse + '#'
-
-                purl = purl[:-1]
-
-                xianlu = '蓝魔专线'
-
-        videos.append({
-            "vod_id": did,
-            "vod_actor": vod_actor,
-            "vod_director": vod_director,
-            "vod_content": vod_content,
-            "vod_remarks": vod_remarks,
-            "vod_year": year,
-            "vod_area": area,
-            "vod_play_from": xianlu,
-            "vod_play_url": purl
-                      })
-
-        result['list'] = videos
-        return result
+                vod_id = '/drama/' + vod_id
+        
+        drama_url = self.siteUrl + vod_id
+        print(f"请求URL: {drama_url}")
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+            "Referer": self.siteUrl,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
+        }
+        
+        rsp = self.fetch(drama_url, headers=headers)
+        if not rsp or rsp.status_code != 200:
+            print(f"请求失败，状态码: {getattr(rsp, 'status_code', 'N/A')}")
+            return {}
+        
+        html = rsp.text
+        next_data_match = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', html, re.DOTALL)
+        
+        if not next_data_match:
+            print("未找到NEXT_DATA内容")
+            return {}
+        
+        try:
+            next_data = json.loads(next_data_match.group(1))
+            page_props = next_data.get("props", {}).get("pageProps", {})
+            print(f"找到页面属性，包含 {len(page_props.keys())} 个键")
+            
+            book_info = page_props.get("bookInfoVo", {})
+            chapter_list = page_props.get("chapterList", [])
+            
+            title = book_info.get("title", "")
+            sub_title = f"{book_info.get('totalChapterNum', '')}集"
+            
+            categories = []
+            for category in book_info.get("categoryList", []):
+                categories.append(category.get("name", ""))
+            
+            vod_content = book_info.get("introduction", "")
+            
+            vod = {
+                "vod_id": vod_id,
+                "vod_name": title,
+                "vod_pic": book_info.get("coverWap", ""),
+                "type_name": ",".join(categories),
+                "vod_year": "",
+                "vod_area": book_info.get("countryName", ""),
+                "vod_remarks": sub_title,
+                "vod_actor": ", ".join([p.get("name", "") for p in book_info.get("performerList", [])]),
+                "vod_director": "",
+                "vod_content": vod_content
+            }
+            
+            # 处理播放列表
+            play_url_list = []
+            episodes = []
+            
+            if chapter_list:
+                print(f"找到 {len(chapter_list)} 个章节")
+                
+                # 先检查是否有可以直接使用的MP4链接作为模板
+                mp4_template = None
+                first_mp4_chapter_id = None
+                
+                # 先搜索第一个章节的MP4链接
+                # 为提高成功率，尝试直接请求第一个章节的播放页
+                if chapter_list and len(chapter_list) > 0:
+                    first_chapter = chapter_list[0]
+                    first_chapter_id = first_chapter.get("chapterId", "")
+                    drama_id_clean = vod_id.replace('/drama/', '')
+                    
+                    if first_chapter_id and drama_id_clean:
+                        first_episode_url = f"{self.siteUrl}/episode/{drama_id_clean}/{first_chapter_id}"
+                        print(f"请求第一集播放页: {first_episode_url}")
+                        
+                        first_rsp = self.fetch(first_episode_url, headers=headers)
+                        if first_rsp and first_rsp.status_code == 200:
+                            first_html = first_rsp.text
+                            # 直接从HTML提取MP4链接
+                            mp4_pattern = r'(https?://[^"\']+\.mp4)'
+                            mp4_matches = re.findall(mp4_pattern, first_html)
+                            if mp4_matches:
+                                mp4_template = mp4_matches[0]
+                                first_mp4_chapter_id = first_chapter_id
+                                print(f"找到MP4链接模板: {mp4_template}")
+                                print(f"模板对应的章节ID: {first_mp4_chapter_id}")
+                
+                # 如果未找到模板，再检查章节对象中是否有MP4链接
+                if not mp4_template:
+                    for chapter in chapter_list[:5]:  # 只检查前5个章节以提高效率
+                        if "chapterVideoVo" in chapter and chapter["chapterVideoVo"]:
+                            chapter_video = chapter["chapterVideoVo"]
+                            mp4_url = chapter_video.get("mp4", "") or chapter_video.get("mp4720p", "") or chapter_video.get("vodMp4Url", "")
+                            if mp4_url and ".mp4" in mp4_url:
+                                mp4_template = mp4_url
+                                first_mp4_chapter_id = chapter.get("chapterId", "")
+                                print(f"从chapterVideoVo找到MP4链接模板: {mp4_template}")
+                                print(f"模板对应的章节ID: {first_mp4_chapter_id}")
+                                break
+                
+                # 遍历所有章节处理播放信息
+                for chapter in chapter_list:
+                    chapter_id = chapter.get("chapterId", "")
+                    chapter_name = chapter.get("chapterName", "")
+                    
+                    # 1. 如果章节自身有MP4链接，直接使用
+                    if "chapterVideoVo" in chapter and chapter["chapterVideoVo"]:
+                        chapter_video = chapter["chapterVideoVo"]
+                        mp4_url = chapter_video.get("mp4", "") or chapter_video.get("mp4720p", "") or chapter_video.get("vodMp4Url", "")
+                        if mp4_url and ".mp4" in mp4_url:
+                            episodes.append(f"{chapter_name}${mp4_url}")
+                            continue
+                    
+                    # 2. 如果有MP4模板，尝试替换章节ID构建MP4链接
+                    if mp4_template and first_mp4_chapter_id and chapter_id:
+                        # 替换模板中的章节ID部分
+                        if first_mp4_chapter_id in mp4_template:
+                            new_mp4_url = mp4_template.replace(first_mp4_chapter_id, chapter_id)
+                            episodes.append(f"{chapter_name}${new_mp4_url}")
+                            continue
+                    
+                    # 3. 如果上述方法都不可行，回退到使用chapter_id构建中间URL
+                    if chapter_id and chapter_name:
+                        url = f"{vod_id}${chapter_id}${chapter_name}"
+                        episodes.append(f"{chapter_name}${url}")
+            
+            if not episodes and vod_id:
+                # 尝试构造默认的集数
+                total_chapters = int(book_info.get("totalChapterNum", "0"))
+                if total_chapters > 0:
+                    print(f"尝试构造 {total_chapters} 个默认集数")
+                    
+                    # 如果知道章节ID的模式，可以构造
+                    if chapter_id and episode_id:
+                        for i in range(1, total_chapters + 1):
+                            chapter_name = f"第{i}集"
+                            url = f"{vod_id}${chapter_id}${chapter_name}"
+                            episodes.append(f"{chapter_name}${url}")
+                    else:
+                        # 使用普通的构造方式
+                        for i in range(1, total_chapters + 1):
+                            chapter_name = f"第{i}集"
+                            url = f"{vod_id}${chapter_name}"
+                            episodes.append(f"{chapter_name}${url}")
+            
+            if episodes:
+                play_url_list.append("#".join(episodes))
+                vod['vod_play_from'] = '河马剧场'
+                vod['vod_play_url'] = '$$$'.join(play_url_list)
+            
+            result = {
+                'list': [vod]
+            }
+            return result
+        except Exception as e:
+            print(f"解析详情页失败: {str(e)}")
+            print(traceback.format_exc())
+            return {}
 
     def playerContent(self, flag, id, vipFlags):
-
-        fenge = id.split("@")
-
-        di = '{"bookId":"","chapterIds":[""],"unClockType":"load","chapterId":"","resolutionRate":"720P"}'
-        data = json.loads(di)
-        data['bookId'] = fenge[0]
-        data['chapterIds'][0] = fenge[1]
-        data['chapterId'] = fenge[2]
-        new_di = json.dumps(data, ensure_ascii=False, indent=4)
-
-        detail2 = self.decrypt_wb(new_di)
-        url = f"{xurl}/free-video-portal/portal/1139"
-        res2 = requests.post(url=url, headers=self.encrypt_data(), data=detail2)
-
-        js = json.loads(res2.text)
-        data = js['data']
-
-        detail2 = self.decrypt(data)
-        detail = json.loads(detail2)
-        url = detail['chapterInfo'][0]['content']['mp4SwitchUrl'][0]
-
         result = {}
-        result["parse"] = 0
-        result["playUrl"] = ''
-        result["url"] = url
-        result["header"] = headers
-        return result
-
-    def searchContentPage(self, key, quick, pg):
-        result = {}
-        videos = []
-
-        if pg:
-            page = int(pg)
+        print(f"调用playerContent: flag={flag}, id={id}")
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+            "Referer": self.siteUrl,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
+        }
+        
+        # 解析id参数
+        parts = id.split('$')
+        drama_id = None
+        chapter_id = None
+        
+        if len(parts) >= 2:
+            drama_id = parts[0]
+            chapter_id = parts[1]
+            chapter_name = parts[2] if len(parts) > 2 else "第一集"
+            print(f"解析参数: drama_id={drama_id}, chapter_id={chapter_id}")
         else:
-            page = 1
+            # 处理旧数据格式
+            print(f"使用原始URL格式: {id}")
+            result["parse"] = 0
+            result["url"] = id
+            result["header"] = json.dumps(headers)
+            return result
+        
+        # 直接检查chapter_id是否包含http（可能已经是视频链接）
+        if 'http' in chapter_id and '.mp4' in chapter_id:
+            print(f"已经是MP4链接: {chapter_id}")
+            result["parse"] = 0
+            result["url"] = chapter_id
+            result["header"] = json.dumps(headers)
+            return result
+        
+        # 构建episode页面URL
+        drama_id_clean = drama_id.replace('/drama/', '')
+        episode_url = f"{self.siteUrl}/episode/{drama_id_clean}/{chapter_id}"
+        print(f"请求episode页面: {episode_url}")
+        
+        try:
+            rsp = self.fetch(episode_url, headers=headers)
+            if not rsp or rsp.status_code != 200:
+                print(f"请求失败，状态码: {getattr(rsp, 'status_code', 'N/A')}")
+                result["parse"] = 0
+                result["url"] = id
+                result["header"] = json.dumps(headers)
+                return result
+            
+            html = rsp.text
+            print(f"获取页面大小: {len(html)} 字节")
+            
+            # 尝试从NEXT_DATA提取视频链接
+            mp4_url = None
+            
+            # 方法1: 从NEXT_DATA提取
+            next_data_match = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', html, re.DOTALL)
+            if next_data_match:
+                try:
+                    print("找到NEXT_DATA")
+                    next_data = json.loads(next_data_match.group(1))
+                    page_props = next_data.get("props", {}).get("pageProps", {})
+                    
+                    # 从chapterList中查找当前章节
+                    chapter_list = page_props.get("chapterList", [])
+                    print(f"找到章节列表，长度: {len(chapter_list)}")
+                    
+                    for chapter in chapter_list:
+                        if chapter.get("chapterId") == chapter_id:
+                            print(f"找到匹配的章节: {chapter.get('chapterName')}")
+                            chapter_video = chapter.get("chapterVideoVo", {})
+                            mp4_url = chapter_video.get("mp4", "") or chapter_video.get("mp4720p", "") or chapter_video.get("vodMp4Url", "")
+                            if mp4_url:
+                                print(f"从chapterList找到MP4链接: {mp4_url}")
+                                break
+                    
+                    # 如果未找到，尝试从当前章节获取
+                    if not mp4_url:
+                        current_chapter = page_props.get("chapterInfo", {})
+                        if current_chapter:
+                            print("找到当前章节信息")
+                            chapter_video = current_chapter.get("chapterVideoVo", {})
+                            mp4_url = chapter_video.get("mp4", "") or chapter_video.get("mp4720p", "") or chapter_video.get("vodMp4Url", "")
+                            if mp4_url:
+                                print(f"从chapterInfo找到MP4链接: {mp4_url}")
+                except Exception as e:
+                    print(f"解析NEXT_DATA失败: {str(e)}")
+                    print(traceback.format_exc())
+            
+            # 方法2: 直接从HTML中提取MP4链接
+            if not mp4_url:
+                mp4_pattern = r'(https?://[^"\']+\.mp4)'
+                mp4_matches = re.findall(mp4_pattern, html)
+                if mp4_matches:
+                    # 查找含有chapter_id的链接
+                    matched_mp4 = False
+                    for url in mp4_matches:
+                        if chapter_id in url:
+                            mp4_url = url
+                            matched_mp4 = True
+                            print(f"从HTML直接提取章节MP4链接: {mp4_url}")
+                            break
+                    
+                    # 如果没找到包含chapter_id的链接，使用第一个
+                    if not matched_mp4 and mp4_matches:
+                        mp4_url = mp4_matches[0]
+                        print(f"从HTML直接提取MP4链接: {mp4_url}")
+            
+            if mp4_url and ".mp4" in mp4_url:
+                print(f"最终找到的MP4链接: {mp4_url}")
+                result["parse"] = 0
+                result["url"] = mp4_url
+                result["header"] = json.dumps(headers)
+                return result
+            else:
+                print(f"未找到有效的MP4链接，尝试再次解析页面内容")
+                # 再尝试一次从HTML中广泛搜索所有可能的MP4链接
+                all_mp4_pattern = r'(https?://[^"\']+\.mp4)'
+                all_mp4_matches = re.findall(all_mp4_pattern, html)
+                if all_mp4_matches:
+                    mp4_url = all_mp4_matches[0]
+                    print(f"从HTML广泛搜索找到MP4链接: {mp4_url}")
+                    result["parse"] = 0
+                    result["url"] = mp4_url
+                    result["header"] = json.dumps(headers)
+                    return result
+                
+                print(f"未找到视频链接，返回原episode URL: {episode_url}")
+                result["parse"] = 0
+                result["url"] = episode_url
+                result["header"] = json.dumps(headers)
+                return result
+        except Exception as e:
+            print(f"请求或解析失败: {str(e)}")
+            print(traceback.format_exc())
+            result["parse"] = 0
+            result["url"] = id
+            result["header"] = json.dumps(headers)
+            return result
+    
+    def localProxy(self, param):
+        # 本地代理处理，此处简单返回传入的参数
+        return [200, "video/MP2T", {}, param]
 
-        di = f'{{"keyword":"{key}","page":{str(page)},"size":15,"searchSource":"搜索按钮","hotWordType":2,"tagIds":"","reservationSwitch":true}}'
-        detail = self.decrypt_wb(di)
-
-        url = f"{xurl}/free-video-portal/portal/1803"
-        response = requests.post(url=url, headers=self.encrypt_data(), data=detail)
-
-        if response.status_code == 200:
-            response_data = response.json()
-            data = response_data.get('data')
-            detail = self.decrypt(data)
-            detail = json.loads(detail)
-
-            js = detail['searchVos']
-
-            for vod in js:
-                name = vod['bookName']
-
-                id = vod['bookId']
-
-                pic = vod['coverWap']
-
-                remark = vod['finishStatusCn']
-
-                video = {
-                    "vod_id": id,
-                    "vod_name": name,
-                    "vod_pic": pic,
-                    "vod_remarks":  + remark
-                        }
-                videos.append(video)
-
-        result = {'list': videos}
-        result['page'] = page
-        result['pagecount'] = 9999
-        result['limit'] = 90
-        result['total'] = 999999
-        return result
-
-    def searchContent(self, key, quick, pg="1"):
-        return self.searchContentPage(key, quick, '1')
-
-    def localProxy(self, params):
-        if params['type'] == "m3u8":
-            return self.proxyM3u8(params)
-        elif params['type'] == "media":
-            return self.proxyMedia(params)
-        elif params['type'] == "ts":
-            return self.proxyTs(params)
-        return None
-
-
-
-
-
-
-
-
-
+    def destroy(self):
+        # 资源回收
+        pass 
