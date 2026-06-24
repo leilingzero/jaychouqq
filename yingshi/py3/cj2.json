@@ -8,6 +8,13 @@
             "bz": "1",
             "paichu": "1,2,3,4"
         },
+         {
+            "name": "TV-98资源站",
+            "api": "https://98zy.vip/api.php/provide/vod/",
+            "detail": "https://98zy.vip",
+            "bz": "1",
+            "paichu": "1,2,3,4"
+        },
         {
             "name": "TV-量子资源",
             "api": "https://cj.lziapi.com/api.php/provide/vod",
