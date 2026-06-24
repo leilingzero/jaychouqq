@@ -212,7 +212,7 @@
 
   {
     "name": "📺4K-电影",
-    "api": "https://www.4kvm.top",
+    "api": "https://www.4kvm.org",
     "type": 2,
     "searchable": true,
     "categories": [{ "name": "电影", "url": "/movies/page/{{page}}", "url2": "/movies" }],
@@ -241,7 +241,7 @@
   },
   {
     "name": "📺4K-追剧",
-    "api": "https://www.4kvm.tv",
+    "api": "https://www.4kvm.org",
     "type": 2,
     "searchable": true,
     "categories": [
