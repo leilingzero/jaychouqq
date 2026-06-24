@@ -10,10 +10,12 @@
       { "name": "国产剧", "url": "&type=tv&tag=国产剧&page_start={{page-1}}" },
       { "name": "美剧", "url": "&type=tv&tag=美剧&page_start={{page-1}}" },
       { "name": "韩剧", "url": "&type=tv&tag=韩剧&page_start={{page-1}}" },
+      { "name": "日剧", "url": "&type=tv&tag=日剧&page_start={{page-1}}" },
       { "name": "纪录片", "url": "&type=tv&tag=纪录片&page_start={{page-1}}" },
       { "name": "豆瓣高分", "url": "&type=movie&tag=豆瓣高分&page_start={{page-1}}" },
       { "name": "华语", "url": "&type=movie&tag=华语&page_start={{page-1}}" },
       { "name": "欧美", "url": "&type=movie&tag=欧美&page_start={{page-1}}" },
+      { "name": "日本", "url": "&type=movie&tag=日本&page_start={{page-1}}" },
       { "name": "韩国", "url": "&type=movie&tag=韩国&page_start={{page-1}}" }
     ],
     "list": {
@@ -87,7 +89,7 @@
   },
   {
     "name": "📺厂长",
-    "api": "https://www.cz0101.com",
+    "api": "https://www.4kcz.com",
     "type": 2,
     "header": {
       "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
