@@ -132,7 +132,7 @@
   },
   {
     "name": "Auete",
-    "api": "https://auete.top",
+    "api": "https://www.au1080.com",
     "type": 2,
     "categories": [
       { "name": "电影", "url": "/Movie/index{{page}}.html", "url2": "/Movie/index.html" },
@@ -212,7 +212,7 @@
 
   {
     "name": "📺4K-电影",
-    "api": "https://www.4kvm.net",
+    "api": "https://www.4kvm.top",
     "type": 2,
     "searchable": true,
     "categories": [{ "name": "电影", "url": "/movies/page/{{page}}", "url2": "/movies" }],
@@ -278,7 +278,7 @@
   },
   {
     "name": "📺动漫巴士",
-    "api": "https://dm84.net",
+    "api": "https://dmbus.cc",
     "type": 2,
     "searchable": true,
     "header": {
