@@ -1,30 +1,27 @@
-# -*- coding: utf-8 -*-
-# 恒轩：https://www.jubaba.vip/
-import json
-import random
+import requests
+from bs4 import BeautifulSoup
 import re
 import sys
-from base64 import b64decode, b64encode
-import requests
-from Crypto.Hash import MD5
-from pyquery import PyQuery as pq
+import json
+import urllib.parse
+from base.spider import Spider
+from urllib.parse import quote, urljoin
 
 sys.path.append('..')
-from base.spider import Spider
 
+xurl = "http://www.dgpengcheng.com"
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 13; M2102J2SC Build/TKQ1.221114.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/144.0.7559.31 Mobile Safari/537.36',
+    'Referer': xurl,
+}
 
 class Spider(Spider):
-    def init(self, extend=""):
-        self.host = "https://www.jubaba.cc"
-        self.headers.update({
-            'referer': f'{self.host}/',
-            'origin': self.host,
-        })
-        self.session = requests.Session()
-        self.session.headers.update(self.headers)
-        self.session.get(self.host)
+    global xurl, headers
 
     def getName(self):
+        return "星辰影院"
+
+    def init(self, extend):
         pass
 
     def isVideoFormat(self, url):
@@ -33,275 +30,220 @@ class Spider(Spider):
     def manualVideoCheck(self):
         pass
 
-    def destroy(self):
-        pass
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="134", "Google Chrome";v="134"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
-        'sec-fetch-site': 'same-origin',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-user': '?1',
-        'sec-fetch-dest': 'document',
-        'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
-    }
-
-    config = {
-        "1": [
-            {"key": "by", "name": "排序",
-             "value": [{"n": "时间", "v": "time"}, {"n": "人气", "v": "hits"}, {"n": "评分", "v": "score"}]}],
-        "2": [
-            {"key": "by", "name": "排序",
-             "value": [{"n": "时间", "v": "time"}, {"n": "人气", "v": "hits"}, {"n": "评分", "v": "score"}]}],
-        "3": [
-            {"key": "by", "name": "排序",
-             "value": [{"n": "时间", "v": "time"}, {"n": "人气", "v": "hits"}, {"n": "评分", "v": "score"}]}],
-        "4": [
-            {"key": "by", "name": "排序",
-             "value": [{"n": "时间", "v": "time"}, {"n": "人气", "v": "hits"}, {"n": "评分", "v": "score"}]}],
-    }
-
-    def clean_vod_name(self, raw_name):
-        
-        clean_name = re.sub(r'年番\d+$|第[一二三四五六七八九十\d]+季$|\d+$|:.*$', '', raw_name).strip()
-        return clean_name
-
     def homeContent(self, filter):
-        data = self.getpq()
-        result = {}
-        classes = []
-        for k in data('ul.swiper-wrapper').eq(0)('li').items():
-            i = k('a').attr('href')
-            if i and 'type' in i:
-                type_name = k.text().strip()
+        classes = [
+            {"type_id": "1", "name": "电影"},
+            {"type_id": "2", "name": "电视剧"},
+            {"type_id": "3", "name": "综艺"},
+            {"type_id": "4", "name": "动漫"},
+            {"type_id": "28", "name": "纪录片"}
+        ]
+        return {'class': classes}
 
-                if type_name == '推荐':
-                    type_name = '恒轩'
-                classes.append({
-                    'type_name': type_name,
-                    'type_id': re.findall(r'\d+', i)[0],
-                })
-        result['class'] = classes
-        result['list'] = self.getlist(data('.tab-content.ewave-pannel_bd li'))
-        result['filters'] = self.config
-        return result
-
-    def homeVideoContent(self):
-        pass
-
-    def categoryContent(self, tid, pg, filter, extend):
-        path = f"/vodshow/{tid}-{extend.get('area', '')}-{extend.get('by', '')}-{extend.get('class', '')}-----{pg}---{extend.get('year', '')}.html"
-        data = self.getpq(path)
-        result = {}
-        result['list'] = self.getlist(data('ul.ewave-vodlist.clearfix li'))
-        result['page'] = pg
-        result['pagecount'] = 9999
-        result['limit'] = 90
-        result['total'] = 999999
-        return result
-
-    def detailContent(self, ids):
-        data = self.getpq(f"/voddetail/{ids[0]}.html")
-        v = data('.ewave-content__detail')
-        c = data('p')
-
-        raw_vod_name = v('h1').text()
-        clean_vod_name = self.clean_vod_name(raw_vod_name)
-
-        vod = {
-            'type_name': c.eq(0)('a').text(),
-            'vod_year': v('.data.hidden-sm').text(),
-            'vod_remarks': clean_vod_name,
-            'vod_actor': c.eq(1)('a').text(),
-            'vod_director': c.eq(2)('a').text(),
-            'vod_content': v('.desc.hidden-xs').text(),
-            'vod_play_from': '',
-            'vod_play_url': ''
-        }
-
-        nd = list(data('ul.nav-tabs.swiper-wrapper li').items())
-        pd = list(data('ul.ewave-content__playlist').items())
-
-        line_priority = ['自营b', '自营e', '自营c', '自营c', '自营d', 'LZ有广', 'BF有广', 'YZ有广']
-        play_url = ''
-        for line in line_priority:
-            for idx, line_name_ele in enumerate(nd):
-                current_line = line_name_ele.text().strip()
-                if current_line == line and pd[idx]('li').items():
-                    play_url = '#'.join([f"{j.text()}${j('a').attr('href')}" for j in pd[idx]('li').items()])
-                    break
-            if play_url:
-                break
-
-        vod['vod_play_from'] = '剧爸爸专线'
-        vod['vod_play_url'] = play_url if play_url else ''
-        return {'list': [vod]}
-
-    def searchContent(self, key, quick, pg="1"):
-        if pg == "1":
-            p = f"-------------.html?wd={key}"
-        else:
-            p = f"{key}----------{pg}---.html"
-        data = self.getpq(f"/vodsearch/{p}")
-        return {'list': self.getlist(data('ul.ewave-vodlist__media.clearfix li')), 'page': pg}
-
-    def playerContent(self, flag, id, vipFlags):
-        try:
-            data = self.getpq(id)
-            jstr = json.loads(data('.ewave-player__video script').eq(0).text().split('=', 1)[-1])
-            jxpath = '/bbplayer/api.php'
-            data = self.session.post(f"{self.host}{jxpath}", data={'vid': jstr['url']}).json()['data']
-            if re.search(r'\.m3u8|\.mp4', data['url']):
-                url = data['url']
-            elif data['urlmode'] == 1:
-                url = self.decode1(data['url'])
-            elif data['urlmode'] == 2:
-                url = self.decode2(data['url'])
-            elif re.search(r'\.m3u8|\.mp4', jstr['url']):
-                url = jstr['url']
-            else:
-                url = None
-            if not url: raise Exception('未找到播放地址')
-            p, c = 0, ''
-        except Exception as e:
-            self.log(f"解析失败: {e}")
-            p, url, c = 1, f"{self.host}{id}", 'document.querySelector("#playleft iframe").contentWindow.document.querySelector("#start").click()'
-        return {'parse': p, 'url': url, 'header': {'User-Agent': 'okhttp/3.12.1'}, 'click': c}
-
-    def localProxy(self, param):
-        wdict = json.loads(self.d64(param['wdict']))
-        url = f"{wdict['jx']}{wdict['id']}"
-        data = pq(self.fetch(url, headers=self.headers).text)
-        html = data('script').eq(-1).text()
-        url = re.search(r'src="(.*?)"', html).group(1)
-        return [302, 'text/html', None, {'Location': url}]
-
-    def liveContent(self, url):
-        pass
-
-    def getpq(self, path='', min=0, max=3):
-        data = self.session.get(f"{self.host}{path}")
-        data = data.text
-        try:
-            if '人机验证' in data:
-                print(f"第{min}次尝试人机验证")
-                jstr = pq(data)('script').eq(-1).html()
-                token, tpath, stt = self.extract(jstr)
-                body = {'value': self.encrypt(self.host, stt), 'token': self.encrypt(token, stt)}
-                cd = self.session.post(f"{self.host}{tpath}", data=body)
-                if min > max: raise Exception('人机验证失败')
-                return self.getpq(path, min + 1, max)
-            return pq(data)
-        except:
-            return pq(data.encode('utf-8'))
-
-    def encrypt(self, input_str, staticchars):
-        encodechars = ""
-        for char in input_str:
-            num0 = staticchars.find(char)
-            if num0 == -1:
-                code = char
-            else:
-                code = staticchars[(num0 + 3) % 62]
-            num1 = random.randint(0, 61)
-            num2 = random.randint(0, 61)
-            encodechars += staticchars[num1] + code + staticchars[num2]
-        return self.e64(encodechars)
-
-    def extract(self, js_code):
-        token_match = re.search(r'var token = encrypt\("([^"]+)"\);', js_code)
-        token_value = token_match.group(1) if token_match else None
-        url_match = re.search(r'var url = \'([^\']+)\';', js_code)
-        url_value = url_match.group(1) if url_match else None
-        staticchars_match = re.search(r'var\s+staticchars\s*=\s*["\']([^"\']+)["\'];', js_code)
-        staticchars = staticchars_match.group(1) if staticchars_match else None
-        return token_value, url_value, staticchars
-
-    def decode1(self, val):
-        url = self._custom_str_decode(val)
-        parts = url.split("/")
-        result = "/".join(parts[2:])
-        key1 = json.loads(self.d64(parts[1]))
-        key2 = json.loads(self.d64(parts[0]))
-        decoded = self.d64(result)
-        return self._de_string(key1, key2, decoded)
-
-    def _custom_str_decode(self, val):
-        decoded = self.d64(val)
-        key = self.md5("test")
-        result = ""
-        for i in range(len(decoded)):
-            result += chr(ord(decoded[i]) ^ ord(key[i % len(key)]))
-        return self.d64(result)
-
-    def _de_string(self, key_array, value_array, input_str):
-        result = ""
-        for char in input_str:
-            if re.match(r'^[a-zA-Z]$', char):
-                if char in key_array:
-                    index = key_array.index(char)
-                    result += value_array[index]
-                    continue
-            result += char
-        return result
-
-    def decode2(self, url):
-        key = "PXhw7UT1B0a9kQDKZsjIASmOezxYG4CHo5Jyfg2b8FLpEvRr3WtVnlqMidu6cN"
-        url = self.d64(url)
-        result = ""
-        i = 1
-        while i < len(url):
-            try:
-                index = key.find(url[i])
-                if index == -1:
-                    char = url[i]
-                else:
-                    char = key[(index + 59) % 62]
-                result += char
-            except IndexError:
-                break
-            i += 3
-        return result
-
-    def getlist(self, data):
+    def _parse_video_items(self, soup):
         videos = []
-        for k in data.items():
-            j = k('.ewave-vodlist__thumb')
-            h = k('.text-overflow a')
-            if not h.attr('href'): h = j
+        seen_ids = set()
 
-            raw_name = j.attr('title')
-            clean_name = self.clean_vod_name(raw_name)
+        for li in soup.select('li'):
+            a_tag = li.select_one('a.stui-vodlist__thumb')
+            if not a_tag:
+                continue
+
+            href = a_tag.get('href', '')
+            if not href:
+                continue
+            vod_id = href if 'http' in href else xurl + href
+            if vod_id in seen_ids:
+                continue
+            seen_ids.add(vod_id)
+
+            img = a_tag.select_one('img')
+            title = a_tag.get('title', '')
+            if not title and img:
+                title = img.get('alt', '')
+            if not title:
+                title = a_tag.get_text(strip=True)
+            if not title:
+                continue
+
+            pic = a_tag.get('data-original', '')
+            if not pic and img:
+                pic = img.get('data-original') or img.get('src', '')
+            if pic and not pic.startswith('http'):
+                pic = xurl + ('' if pic.startswith('/') else '/') + pic
+
+            remark = ''
+            remark_span = a_tag.select_one('span.pic-text')
+            if remark_span:
+                remark = remark_span.get_text(strip=True)
+
             videos.append({
-                'vod_id': re.findall(r'\d+', h.attr('href'))[0],
-                'vod_name': clean_name,
-                'vod_pic': j.attr('data-original'),
-                'vod_remarks': k('.pic-text').text(),
+                "vod_id": vod_id,
+                "vod_name": title,
+                "vod_pic": pic,
+                "vod_remarks": remark
             })
         return videos
 
-    def e64(self, text):
-        try:
-            text_bytes = text.encode('utf-8')
-            encoded_bytes = b64encode(text_bytes)
-            return encoded_bytes.decode('utf-8')
-        except Exception as e:
-            print(f"Base64编码错误: {str(e)}")
-            return ""
+    def homeVideoContent(self):
+        return {'list': self._parse_video_items(BeautifulSoup(requests.get(xurl, headers=headers).text, 'lxml'))}
 
-    def d64(self, encoded_text):
-        try:
-            encoded_bytes = encoded_text.encode('utf-8')
-            decoded_bytes = b64decode(encoded_bytes)
-            return decoded_bytes.decode('utf-8')
-        except Exception as e:
-            print(f"Base64解码错误: {str(e)}")
-            return ""
+    def categoryContent(self, cid, pg, filter, ext):
+        page = int(pg) if pg else 1
+        url = f"{xurl}/vtype/{cid}-{page}.html"
+        videos = self._parse_video_items(BeautifulSoup(requests.get(url, headers=headers).text, 'lxml'))
+        return {
+            'list': videos,
+            'page': page,
+            'pagecount': 999,
+            'limit': 90,
+            'total': 9999
+        }
 
-    def md5(self, text):
-        h = MD5.new()
-        h.update(text.encode('utf-8'))
-        return h.hexdigest()
+    def detailContent(self, ids):
+        did = ids[0]
+        if not did.startswith('http'):
+            did = urljoin(xurl, did)
+        resp = requests.get(did, headers=headers, timeout=10)
+        soup = BeautifulSoup(resp.text, 'lxml')
+        info = {'vod_id': did}
+
+        thumb = soup.select_one('.stui-content__thumb img')
+        if thumb:
+            pic = thumb.get('data-original') or thumb.get('src', '')
+            if pic and pic.startswith('//'):
+                pic = 'https:' + pic
+            elif pic and not pic.startswith('http'):
+                pic = urljoin(xurl, pic)
+            info['vod_pic'] = pic
+
+        detail_div = soup.select_one('.stui-content')
+        if detail_div:
+            title_h1 = detail_div.select_one('h3.title')
+            if title_h1:
+                raw_title = title_h1.get_text(strip=True).replace('\n', '')
+                info['vod_name'] = raw_title
+
+            for p in detail_div.select('p.data'):
+                text = p.get_text(strip=True)
+                if '主演：' in text:
+                    info['vod_actor'] = text.split('主演：')[-1].strip()
+                if '类型：' in text:
+                    info['type_name'] = text.split('类型：')[-1].strip()
+                if '导演：' in text:
+                    info['vod_director'] = text.split('导演：')[-1].strip()
+                if '状态：' in text:
+                    info['vod_remarks'] = text.split('状态：')[-1].strip()
+                if '年代：' in text:
+                    info['vod_year'] = text.split('年代：')[-1].strip()
+                if '地区：' in text:
+                    info['vod_area'] = text.split('地区：')[-1].strip()
+
+        content_div = soup.select_one('.detail-content')
+        if content_div:
+            p = content_div.find('p')
+            if p:
+                text = p.get_text(strip=True)
+            else:
+                text = content_div.get_text(strip=True)
+            text = re.sub(r'^简介[：:]\s*', '', text)
+            info['vod_content'] = text
+        else:
+            info['vod_content'] = ''
+
+        filter_lines = ['猜您喜欢', '同类型']
+        filter_titles = ['1080P', 'дрр滈凊']
+        ktabs = []
+        klists = []
+        seen_lines = set()
+
+        line_items = soup.select('.stui-pannel__head h3')
+        playlist_containers = soup.select('.stui-content__playlist')
+
+        for idx, tab in enumerate(line_items):
+            if idx >= len(playlist_containers):
+                break
+            line_name = tab.get_text(strip=True)
+            if not line_name or line_name in filter_lines:
+                continue
+            if line_name in seen_lines:
+                continue
+            container = playlist_containers[idx]
+            episode_links = container.select('li a')
+            if not episode_links:
+                continue
+            klist = []
+            for ep in episode_links:
+                ep_name = ep.get_text(strip=True)
+                ep_link = ep.get('href', '')
+                if ep_name in filter_titles:
+                    continue
+                if ep_name and ep_link:
+                    klist.append(f'{ep_name}${ep_link}')
+            if klist:
+                seen_lines.add(line_name)
+                ktabs.append(line_name)
+                klists.append('#'.join(klist))
+
+        info["vod_play_from"] = '$$$'.join(ktabs)
+        info["vod_play_url"] = '$$$'.join(klists)
+
+        return {'list': [info]}
+
+    def playerContent(self, flag, id, vipFlags):
+        try:
+            play_url = id if id.startswith(('http://', 'https://')) else xurl + id
+            html = requests.get(play_url, headers=headers, timeout=10).text
+
+            pattern = r'var\s+player_\w+\s*=\s*(\{[^;]+?\})\s*(?:;|</script)'
+            match = re.search(pattern, html, re.DOTALL)
+            video_url = ''
+            if match:
+                try:
+                    json_str = match.group(1).strip()
+                    json_str = re.sub(r',\s*}', '}', json_str)
+                    data = json.loads(json_str)
+                    video_url = data.get('url', '')
+                except Exception:
+                    pass
+
+            if not video_url:
+                m3u8_match = re.search(r'["\']url["\']\s*:\s*["\'](https?://[^"\']+\.m3u8[^"\']*)["\']', html)
+                if m3u8_match:
+                    video_url = m3u8_match.group(1)
+
+            if video_url:
+                parse = 0 if re.search(r'\.(m3u8|mp4|mkv|flv|ts)$', video_url, re.I) else 1
+                if parse:
+                    video_url = play_url
+            else:
+                parse = 1
+                video_url = play_url
+
+            return {"parse": parse, "playUrl": "", "url": video_url, "header": headers}
+        except Exception as e:
+            print(f"player error: {e}")
+            return {"parse": 1, "playUrl": "", "url": xurl + id, "header": headers}
+
+    def searchContent(self, key, quick, page='1'):
+        page = int(page) if page else 1
+        encoded_key = urllib.parse.quote(key, safe='')
+        url = f"{xurl}/vodsearch/{encoded_key}----------{page}---.html"
+        soup = BeautifulSoup(requests.get(url, headers=headers).text, 'lxml')
+        videos = self._parse_video_items(soup)
+        return {
+            'list': videos,
+            'page': page,
+            'pagecount': 60,
+            'limit': 30,
+            'total': 999999
+        }
+
+    def localProxy(self, params):
+        if params['type'] == "m3u8":
+            return self.proxyM3u8(params)
+        elif params['type'] == "media":
+            return self.proxyMedia(params)
+        elif params['type'] == "ts":
+            return self.proxyTs(params)
+        return None
